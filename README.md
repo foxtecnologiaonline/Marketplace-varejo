@@ -3,7 +3,9 @@
 Marketplace de uniformes escolares, esportivos e personalizados, inspirado nos fluxos e no
 layout de lojas como [ddamalharia.com.br](https://ddamalharia.com.br/) e
 [taconfeccoes.com.br](https://www.taconfeccoes.com.br/). O escopo completo (benchmarking,
-decisões de arquitetura e roadmap) está em [`docs/ESCOPO.md`](./docs/ESCOPO.md).
+decisões de arquitetura e roadmap) está em [`docs/ESCOPO.md`](./docs/ESCOPO.md). O escopo da
+próxima fase (LP com checkout, upload automático de fotos e ERP) está em
+[`docs/ESCOPO-FASE2.md`](./docs/ESCOPO-FASE2.md).
 
 ## Stack
 
