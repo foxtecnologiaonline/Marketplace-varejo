@@ -6,11 +6,11 @@ import { searchProducts } from "@/lib/data";
 export const metadata: Metadata = { title: "Produtos" };
 
 interface Props {
-  searchParams: { categoria?: string; loja?: string; ordenar?: string; q?: string };
+  searchParams: Promise<{ categoria?: string; loja?: string; ordenar?: string; q?: string }>;
 }
 
-export default function ProductsPage({ searchParams }: Props) {
-  const { categoria, loja, ordenar, q } = searchParams;
+export default async function ProductsPage({ searchParams }: Props) {
+  const { categoria, loja, ordenar, q } = await searchParams;
 
   const sortMap = { "menor-preco": "price-asc", "maior-preco": "price-desc" } as const;
 

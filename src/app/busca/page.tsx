@@ -4,8 +4,9 @@ import { searchProducts } from "@/lib/data";
 
 export const metadata: Metadata = { title: "Busca" };
 
-export default function SearchPage({ searchParams }: { searchParams: { q?: string } }) {
-  const q = searchParams.q?.trim() ?? "";
+export default async function SearchPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+  const { q: rawQ } = await searchParams;
+  const q = rawQ?.trim() ?? "";
   const result = q ? searchProducts({ query: q }) : [];
 
   return (

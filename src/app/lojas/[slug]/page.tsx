@@ -5,20 +5,22 @@ import { ProductCard } from "@/components/product-card";
 import { getStoreBySlug, searchProducts, stores } from "@/lib/data";
 
 interface Props {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 export function generateStaticParams() {
   return stores.map((s) => ({ slug: s.slug }));
 }
 
-export function generateMetadata({ params }: Props): Metadata {
-  const store = getStoreBySlug(params.slug);
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const store = getStoreBySlug(slug);
   return { title: store?.name ?? "Loja" };
 }
 
-export default function StorePage({ params }: Props) {
-  const store = getStoreBySlug(params.slug);
+export default async function StorePage({ params }: Props) {
+  const { slug } = await params;
+  const store = getStoreBySlug(slug);
   if (!store) notFound();
 
   const storeProducts = searchProducts({ store: store.slug });

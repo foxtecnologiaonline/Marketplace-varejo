@@ -20,6 +20,9 @@ passa a gerar, por isso vem depois.
 
 ## 1. MVP da LP com produtos e checkout
 
+> **Status:** implementado neste repositório. Falta só a decisão de infraestrutura (projeto
+> Supabase) e a credencial do Mercado Pago — ver `.env.example` e o bloco "Como ativar" abaixo.
+
 ### Objetivo
 Loja única (não o marketplace multi-vendor completo), com catálogo real e checkout funcional,
 para validar venda online o mais rápido possível.
@@ -45,6 +48,28 @@ pedido fica registrado no banco com status `pago`, pronto para o ERP consumir.
 
 ### Esforço estimado
 **M** — 2 a 3 semanas, 1 dev full-stack.
+
+### Como ativar (checklist)
+1. Escolher/criar o projeto Supabase (pendente — a organização está no limite de 2 projetos
+   free; ver §5) e aplicar `supabase/migrations/0001_orders_checkout.sql`.
+2. Preencher `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` (`.env.example`) — sem isso, o
+   checkout funciona mas não persiste pedidos (fica avisado em log, não falha silenciosamente).
+3. Criar a conta/app no Mercado Pago e preencher `MERCADOPAGO_ACCESS_TOKEN` — sem isso, o
+   pedido é criado como "pendente" e o cliente vai direto para a página de sucesso, sem cobrança
+   real (modo demo).
+4. Opcional: `RESEND_API_KEY` para o e-mail de confirmação sair de verdade.
+
+### O que já está no código
+- Fluxo completo `/produtos/[slug]` → `/carrinho` → `/checkout` → Server Action
+  (`src/app/checkout/actions.ts`) → `/checkout/sucesso`, testado de ponta a ponta.
+- Preço e frete sempre recalculados no servidor a partir do catálogo (`src/lib/data.ts`) e da
+  tabela de CEP (`src/lib/shipping.ts`) — nunca confiando em valor vindo do cliente.
+- Pedido gravado via `src/lib/orders.ts` (Supabase) com *fallback* em memória se o banco não
+  estiver configurado, para o checkout nunca quebrar em dev/demo.
+- Preferência de pagamento e webhook do Mercado Pago (`src/lib/mercadopago.ts`,
+  `src/app/api/webhooks/mercadopago/route.ts`) — o webhook rebusca o pagamento na API
+  autenticada, nunca confia no corpo da notificação.
+- E-mail de confirmação via Resend (`src/lib/email.ts`), no-op se a chave não estiver setada.
 
 ---
 
