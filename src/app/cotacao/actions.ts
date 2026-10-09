@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { getStoreBySlug } from "@/lib/data";
 import { sendContactEmail } from "@/lib/email";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const quoteSchema = z.object({
   customerName: z.string().trim().min(3, "Informe o nome completo").max(120, "Nome muito longo"),
@@ -30,6 +31,9 @@ export async function submitQuoteRequest(input: QuoteInput): Promise<QuoteResult
   if (!store) {
     return { success: false, error: "Loja/colégio inválido." };
   }
+
+  const limited = await checkRateLimit("cotacao", 5, 10 * 60_000);
+  if (limited.limited) return { success: false, error: limited.error };
 
   try {
     await sendContactEmail({

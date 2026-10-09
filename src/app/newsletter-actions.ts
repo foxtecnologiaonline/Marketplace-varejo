@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { sendContactEmail } from "@/lib/email";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const newsletterSchema = z.object({
   email: z.string().trim().email("E-mail inválido").max(254, "E-mail muito longo")
@@ -14,6 +15,9 @@ export async function subscribeNewsletter(input: { email: string }): Promise<New
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message ?? "E-mail inválido" };
   }
+
+  const limited = await checkRateLimit("newsletter", 3, 10 * 60_000);
+  if (limited.limited) return { success: false, error: limited.error };
 
   try {
     await sendContactEmail({

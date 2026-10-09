@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { sendContactEmail } from "@/lib/email";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const supportSchema = z.object({
   customerName: z.string().trim().min(2, "Informe seu nome").max(120, "Nome muito longo"),
@@ -21,6 +22,9 @@ export async function submitSupportRequest(input: SupportInput): Promise<Support
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message ?? "Dados inválidos" };
   }
+
+  const limited = await checkRateLimit("atendimento", 5, 10 * 60_000);
+  if (limited.limited) return { success: false, error: limited.error };
 
   try {
     await sendContactEmail({ ...parsed.data, topic: "Novo contato — Central de Atendimento" });

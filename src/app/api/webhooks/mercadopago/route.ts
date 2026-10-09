@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchPayment, isMercadoPagoConfigured, isValidMpPaymentId } from "@/lib/mercadopago";
+import { verifyMercadoPagoSignature } from "@/lib/mercadopago-signature";
 import { getOrderById, markOrderPaid } from "@/lib/orders";
 import { sendOrderConfirmationEmail } from "@/lib/email";
 import { reaisToCents } from "@/lib/money";
+
+let warnedSignatureNotConfigured = false;
 
 // Webhook do Mercado Pago (Checkout Pro). Não confiamos em nada do corpo da
 // notificação além do id do pagamento — o status e os valores são sempre
@@ -32,6 +35,29 @@ export async function POST(request: NextRequest) {
 
   if (!isValidMpPaymentId(paymentId)) {
     return NextResponse.json({ error: "id de pagamento inválido" }, { status: 400 });
+  }
+
+  const webhookSecret = process.env.MERCADOPAGO_WEBHOOK_SECRET;
+  if (webhookSecret) {
+    // data.id no manifest assinado vem da query string da notification_url, não do
+    // corpo — é o que o Mercado Pago de fato assina (ver mercadopago-signature.ts).
+    const dataIdFromQuery = request.nextUrl.searchParams.get("data.id");
+    const verified = verifyMercadoPagoSignature({
+      xSignature: request.headers.get("x-signature"),
+      xRequestId: request.headers.get("x-request-id"),
+      dataId: dataIdFromQuery ?? paymentId,
+      secret: webhookSecret
+    });
+    if (!verified) {
+      console.error("[webhook mercadopago] assinatura inválida — notificação rejeitada");
+      return NextResponse.json({ error: "assinatura inválida" }, { status: 401 });
+    }
+  } else if (!warnedSignatureNotConfigured) {
+    warnedSignatureNotConfigured = true;
+    console.warn(
+      "[webhook mercadopago] MERCADOPAGO_WEBHOOK_SECRET não configurado — notificações são " +
+        "aceitas SEM verificar a assinatura. Configure antes de ir para produção (ver .env.example)."
+    );
   }
 
   try {

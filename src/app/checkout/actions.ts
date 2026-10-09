@@ -10,6 +10,7 @@ import { createOrder, attachPaymentPreference, type OrderItemInput } from "@/lib
 import { createPaymentPreference, isMercadoPagoConfigured } from "@/lib/mercadopago";
 import { sendOrderConfirmationEmail } from "@/lib/email";
 import { isDatabaseConfigured } from "@/lib/supabase-server";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const cartItemSchema = z.object({
   productId: z.string().max(40),
@@ -62,6 +63,12 @@ export async function submitCheckout(input: CheckoutInput): Promise<CheckoutResu
     return { success: false, error: parsed.error.issues[0]?.message ?? "Dados inválidos" };
   }
   const data = parsed.data;
+
+  // Mais generoso que os outros formulários (cotação/atendimento/newsletter): um
+  // cliente de verdade pode legitimamente tentar de novo após erro de validação,
+  // CEP digitado errado ou falha momentânea de rede.
+  const limited = await checkRateLimit("checkout", 15, 10 * 60_000);
+  if (limited.limited) return { success: false, error: limited.error };
 
   try {
     // Preço é sempre recalculado a partir do catálogo no servidor — nunca confiamos

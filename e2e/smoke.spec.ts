@@ -46,6 +46,20 @@ test("home não pede imagens de otimização a 1920px para logos/thumbs pequenos
   expect(widths).not.toContain(1920);
 });
 
+test("nenhuma violação de CSP ao navegar e usar os formulários principais", async ({ page }) => {
+  const violations: string[] = [];
+  page.on("console", (m) => {
+    if (m.type() === "error" && m.text().includes("Content Security Policy")) violations.push(m.text());
+  });
+
+  await page.goto("/", { waitUntil: "networkidle" });
+  await page.goto("/produtos/camiseta-manga-curta-marista", { waitUntil: "networkidle" });
+  await page.goto("/checkout", { waitUntil: "networkidle" });
+  await page.goto("/cotacao", { waitUntil: "networkidle" });
+
+  expect(violations).toEqual([]);
+});
+
 test("headers de segurança presentes e sem X-Powered-By", async ({ page }) => {
   const res = await page.goto("/");
   const headers = res!.headers();
