@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCartStore, cartTotals } from "@/lib/cart-store";
 import { calculateShipping, isValidCep } from "@/lib/shipping";
 import { formatCurrency } from "@/lib/format";
 import { useHydrated } from "@/lib/use-hydrated";
+import { lookupCep } from "@/lib/viacep";
 import { submitCheckout } from "./actions";
 
 export default function CheckoutPage() {
@@ -15,6 +16,9 @@ export default function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cep, setCep] = useState("");
+  const [city, setCity] = useState("");
+  const [street, setStreet] = useState("");
+  const [cepLookup, setCepLookup] = useState<"idle" | "loading" | "found" | "not-found">("idle");
 
   const { subtotal } = cartTotals(items);
   const shipping = useMemo(
@@ -22,6 +26,29 @@ export default function CheckoutPage() {
     [cep, subtotal]
   );
   const total = subtotal + (shipping?.cost ?? 0);
+
+  // Autopreenche cidade/endereço pelo CEP (ViaCEP, API pública). Nunca sobrescreve o
+  // que a pessoa já digitou: só preenche campos vazios, e ela pode sempre editar.
+  useEffect(() => {
+    if (!isValidCep(cep)) return;
+    const controller = new AbortController();
+
+    async function run() {
+      setCepLookup("loading");
+      const address = await lookupCep(cep, controller.signal);
+      if (controller.signal.aborted) return;
+      if (!address) {
+        setCepLookup("not-found");
+        return;
+      }
+      setCepLookup("found");
+      setCity((current) => current || address.localidade);
+      setStreet((current) => current || address.logradouro);
+    }
+    run();
+
+    return () => controller.abort();
+  }, [cep]);
 
   if (!hydrated) return null;
 
@@ -97,16 +124,38 @@ export default function CheckoutPage() {
           <fieldset className="card p-5">
             <legend className="mb-3 text-sm font-semibold text-slate-900">Endereço de entrega</legend>
             <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <input
+                  name="cep"
+                  required
+                  placeholder="CEP"
+                  value={cep}
+                  onChange={(e) => setCep(e.target.value)}
+                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                />
+                {isValidCep(cep) && cepLookup === "loading" && (
+                  <p className="mt-1 text-xs text-slate-500">Buscando endereço...</p>
+                )}
+                {isValidCep(cep) && cepLookup === "not-found" && (
+                  <p className="mt-1 text-xs text-amber-600">CEP não encontrado, preencha manualmente.</p>
+                )}
+              </div>
               <input
-                name="cep"
+                name="city"
                 required
-                placeholder="CEP"
-                value={cep}
-                onChange={(e) => setCep(e.target.value)}
+                placeholder="Cidade"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
                 className="rounded-md border border-slate-300 px-3 py-2 text-sm"
               />
-              <input name="city" required placeholder="Cidade" className="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-              <input name="street" required placeholder="Endereço" className="rounded-md border border-slate-300 px-3 py-2 text-sm sm:col-span-2" />
+              <input
+                name="street"
+                required
+                placeholder="Endereço"
+                value={street}
+                onChange={(e) => setStreet(e.target.value)}
+                className="rounded-md border border-slate-300 px-3 py-2 text-sm sm:col-span-2"
+              />
               <input name="complement" placeholder="Complemento" className="rounded-md border border-slate-300 px-3 py-2 text-sm sm:col-span-2" />
             </div>
             {cep && !isValidCep(cep) && (

@@ -1,6 +1,7 @@
 import "server-only";
 import { randomUUID } from "crypto";
 import { getSupabaseAdmin, isDatabaseConfigured } from "./supabase-server";
+import { centsToReais, reaisToCents } from "./money";
 
 export interface OrderItemInput {
   productId: string;
@@ -158,7 +159,7 @@ export async function markOrderPaid(params: {
     gateway_payment_id: params.mpPaymentId,
     gross_amount: params.grossAmount,
     fee_amount: params.feeAmount,
-    net_amount: Math.round((params.grossAmount - params.feeAmount) * 100) / 100,
+    net_amount: centsToReais(reaisToCents(params.grossAmount) - reaisToCents(params.feeAmount)),
     status: "pago",
     paid_at: new Date().toISOString(),
     raw: params.raw

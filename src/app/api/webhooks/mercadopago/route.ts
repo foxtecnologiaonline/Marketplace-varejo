@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { fetchPayment, isMercadoPagoConfigured, isValidMpPaymentId } from "@/lib/mercadopago";
 import { getOrderById, markOrderPaid } from "@/lib/orders";
 import { sendOrderConfirmationEmail } from "@/lib/email";
+import { reaisToCents } from "@/lib/money";
 
 // Webhook do Mercado Pago (Checkout Pro). Não confiamos em nada do corpo da
 // notificação além do id do pagamento — o status e os valores são sempre
@@ -57,7 +58,11 @@ export async function POST(request: NextRequest) {
     // total do pedido calculado no servidor, senão um pagamento de valor menor (feito por
     // qualquer meio que gere um pagamento válido com esse external_reference) marcaria o
     // pedido inteiro como pago.
-    if (Math.abs(payment.transactionAmount - order.total) > 0.01) {
+    // Compara em centavos inteiros em vez de tolerância em float: duas conversões
+    // reais->centavos exatas, sem depender de um epsilon arbitrário (0.01) que
+    // tanto poderia aceitar um centavo de diferença indevido quanto rejeitar por
+    // erro de ponto flutuante um valor que na verdade bate.
+    if (reaisToCents(payment.transactionAmount) !== reaisToCents(order.total)) {
       console.error(
         `[webhook mercadopago] valor pago (${payment.transactionAmount}) diverge do total do pedido ${order.id} (${order.total})`
       );

@@ -1,5 +1,6 @@
 import "server-only";
 import type { Order } from "./orders";
+import { centsToReais, reaisToCents, sumCents } from "./money";
 
 const MP_API = "https://api.mercadopago.com";
 const EXTERNAL_TIMEOUT_MS = 10_000;
@@ -109,7 +110,7 @@ export async function fetchPayment(paymentId: string): Promise<MercadoPagoPaymen
 
   const data = await response.json();
   const feeAmount = Array.isArray(data.fee_details)
-    ? Math.round(data.fee_details.reduce((sum: number, fee: { amount: number }) => sum + fee.amount, 0) * 100) / 100
+    ? centsToReais(sumCents(data.fee_details.map((fee: { amount: number }) => reaisToCents(fee.amount))))
     : 0;
 
   return {

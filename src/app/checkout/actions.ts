@@ -5,6 +5,7 @@ import { z } from "zod";
 import { MAX_ITEM_QUANTITY } from "@/lib/config";
 import { products } from "@/lib/data";
 import { calculateShipping, isValidCep } from "@/lib/shipping";
+import { centsToReais, lineTotalCents, reaisToCents, sumCents } from "@/lib/money";
 import { createOrder, attachPaymentPreference, type OrderItemInput } from "@/lib/orders";
 import { createPaymentPreference, isMercadoPagoConfigured } from "@/lib/mercadopago";
 import { sendOrderConfirmationEmail } from "@/lib/email";
@@ -93,11 +94,13 @@ export async function submitCheckout(input: CheckoutInput): Promise<CheckoutResu
       });
     }
 
-    // Arredonda para centavos: somas de ponto flutuante (ex.: 69,9 x 3) geram 209,70000000000002.
-    const toCents = (value: number) => Math.round(value * 100) / 100;
-    const subtotal = toCents(orderItems.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0));
+    // Soma em centavos inteiros (nunca em float): 69,9 x 3 em ponto flutuante puro dá
+    // 209,70000000000002. Só convertemos de volta para reais no limite do sistema
+    // (gravação no pedido, chamada ao Mercado Pago).
+    const subtotalCents = sumCents(orderItems.map((item) => lineTotalCents(item.unitPrice, item.quantity)));
+    const subtotal = centsToReais(subtotalCents);
     const shipping = calculateShipping(data.cep, subtotal);
-    const total = toCents(subtotal + shipping.cost);
+    const total = centsToReais(subtotalCents + reaisToCents(shipping.cost));
 
     // Nunca cobrar sem ter onde registrar o pedido: com o gateway ativo e o banco ausente,
     // o webhook confirmaria um pagamento de um pedido que não existe em lugar nenhum.

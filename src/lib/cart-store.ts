@@ -5,6 +5,7 @@ import { persist } from "zustand/middleware";
 import type { CartItem } from "./types";
 import { MAX_ITEM_QUANTITY } from "./config";
 import { products } from "./data";
+import { centsToReais, lineTotalCents, sumCents } from "./money";
 
 interface CartState {
   items: CartItem[];
@@ -54,13 +55,13 @@ export const useCartStore = create<CartState>()(
 );
 
 export function cartTotals(items: CartItem[]) {
-  let subtotal = 0;
+  const lineCents: number[] = [];
   let count = 0;
   for (const item of items) {
     const product = products.find((p) => p.id === item.productId);
     if (!product) continue;
-    subtotal += product.price * item.quantity;
+    lineCents.push(lineTotalCents(product.price, item.quantity));
     count += item.quantity;
   }
-  return { subtotal: Math.round(subtotal * 100) / 100, count };
+  return { subtotal: centsToReais(sumCents(lineCents)), count };
 }
