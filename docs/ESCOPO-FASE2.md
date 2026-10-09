@@ -54,22 +54,31 @@ pedido fica registrado no banco com status `pago`, pronto para o ERP consumir.
    free; ver §5) e aplicar `supabase/migrations/0001_orders_checkout.sql`.
 2. Preencher `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` (`.env.example`) — sem isso, o
    checkout funciona mas não persiste pedidos (fica avisado em log, não falha silenciosamente).
-3. Criar a conta/app no Mercado Pago e preencher `MERCADOPAGO_ACCESS_TOKEN` — sem isso, o
-   pedido é criado como "pendente" e o cliente vai direto para a página de sucesso, sem cobrança
-   real (modo demo).
-4. Opcional: `RESEND_API_KEY` para o e-mail de confirmação sair de verdade.
+3. Criar a conta/app no Mercado Pago e preencher `MERCADOPAGO_ACCESS_TOKEN` (e, nesse caso,
+   também `NEXT_PUBLIC_SITE_URL` em produção) — sem isso, o pedido é criado como "pendente" e o
+   cliente vai direto para a página de sucesso, sem cobrança real (modo demo).
+4. Opcional: `RESEND_API_KEY` + `SALES_NOTIFICATION_EMAIL` para o e-mail de confirmação de
+   pedido e a notificação de cotação institucional (`/cotacao`) saírem de verdade.
 
 ### O que já está no código
 - Fluxo completo `/produtos/[slug]` → `/carrinho` → `/checkout` → Server Action
-  (`src/app/checkout/actions.ts`) → `/checkout/sucesso`, testado de ponta a ponta.
-- Preço e frete sempre recalculados no servidor a partir do catálogo (`src/lib/data.ts`) e da
-  tabela de CEP (`src/lib/shipping.ts`) — nunca confiando em valor vindo do cliente.
+  (`src/app/checkout/actions.ts`) → `/checkout/sucesso`, testado de ponta a ponta com Playwright
+  (feliz, CEP inválido, carrinho vazio, cor/tamanho/estoque indisponível).
+- Preço, frete e **disponibilidade de tamanho/cor/estoque** sempre recalculados e validados no
+  servidor a partir do catálogo (`src/lib/data.ts`) e da tabela de CEP (`src/lib/shipping.ts`)
+  — nunca confiando em valor vindo do cliente.
 - Pedido gravado via `src/lib/orders.ts` (Supabase) com *fallback* em memória se o banco não
   estiver configurado, para o checkout nunca quebrar em dev/demo.
 - Preferência de pagamento e webhook do Mercado Pago (`src/lib/mercadopago.ts`,
   `src/app/api/webhooks/mercadopago/route.ts`) — o webhook rebusca o pagamento na API
-  autenticada, nunca confia no corpo da notificação.
-- E-mail de confirmação via Resend (`src/lib/email.ts`), no-op se a chave não estiver setada.
+  autenticada, é **idempotente** (ignora notificações repetidas do mesmo pagamento) e **rejeita**
+  pagamentos cujo valor não bate com o total do pedido, nunca confiando no corpo da notificação.
+- E-mail de confirmação de pedido e notificação de cotação institucional via Resend
+  (`src/lib/email.ts`), no-op se a chave não estiver setada.
+- `/cotacao` envia de fato o pedido de cotação (`src/app/cotacao/actions.ts`) — antes só
+  parecia funcionar: era um `<form>` sem `action`.
+- Qualquer falha inesperada no checkout ou na cotação (infra fora do ar, config ausente) vira
+  uma mensagem clara na tela em vez de travar a página — nunca um erro opaco sem explicação.
 
 ---
 

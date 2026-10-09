@@ -7,7 +7,7 @@ export const stores: Store[] = [
   {
     slug: "colegio-marista",
     name: "Colégio Marista",
-    logo: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=200&auto=format&fit=crop",
+    logo: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=200&auto=format&fit=crop",
     description: "Uniformes oficiais do Infantil ao Médio"
   },
   {
