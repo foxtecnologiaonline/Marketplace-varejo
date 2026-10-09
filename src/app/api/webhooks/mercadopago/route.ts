@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fetchPayment, isMercadoPagoConfigured } from "@/lib/mercadopago";
+import { fetchPayment, isMercadoPagoConfigured, isValidMpPaymentId } from "@/lib/mercadopago";
 import { getOrderById, markOrderPaid } from "@/lib/orders";
 import { sendOrderConfirmationEmail } from "@/lib/email";
 
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true });
   }
 
-  if (!/^\d{1,20}$/.test(paymentId)) {
+  if (!isValidMpPaymentId(paymentId)) {
     return NextResponse.json({ error: "id de pagamento inválido" }, { status: 400 });
   }
 

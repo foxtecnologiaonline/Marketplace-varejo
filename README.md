@@ -30,6 +30,8 @@ Abra http://localhost:3000.
 - `npm run start` — serve o build de produção
 - `npm run typecheck` — checagem de tipos
 - `npm run lint` — ESLint (flat config; o `next lint` foi removido no Next 16)
+- `npm test` — testes unitários (Vitest)
+- `npm run test:e2e` — testes de ponta a ponta (Playwright, sobe o build de produção)
 - `npm run package` — compila e gera `dist/marketplace-varejo-build.tar.gz` (servidor
   standalone pronto para rodar com `node server.js`, sem `npm install`) e
   `dist/marketplace-varejo-source.tar.gz` (código-fonte), com `SHA256SUMS`

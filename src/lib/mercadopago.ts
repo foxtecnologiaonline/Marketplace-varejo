@@ -4,6 +4,12 @@ import type { Order } from "./orders";
 const MP_API = "https://api.mercadopago.com";
 const EXTERNAL_TIMEOUT_MS = 10_000;
 
+// O id de pagamento do Mercado Pago é sempre numérico. Validar isso antes de
+// interpolar na URL da API evita path traversal ("../") vindo de um webhook forjado.
+export function isValidMpPaymentId(id: string): boolean {
+  return /^\d{1,20}$/.test(id);
+}
+
 export function isMercadoPagoConfigured(): boolean {
   return Boolean(process.env.MERCADOPAGO_ACCESS_TOKEN);
 }
@@ -88,9 +94,7 @@ export async function fetchPayment(paymentId: string): Promise<MercadoPagoPaymen
     throw new Error("MERCADOPAGO_ACCESS_TOKEN não configurado.");
   }
 
-  // O id vem do corpo do webhook (controlado por quem chamar): só dígitos, para não
-  // permitir "../" e fazer o token autenticado bater em outros caminhos da API.
-  if (!/^\d{1,20}$/.test(paymentId)) {
+  if (!isValidMpPaymentId(paymentId)) {
     throw new Error("ID de pagamento inválido.");
   }
 
