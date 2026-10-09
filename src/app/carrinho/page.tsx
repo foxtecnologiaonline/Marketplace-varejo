@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Trash2 } from "lucide-react";
 import { useCartStore, cartTotals } from "@/lib/cart-store";
-import { FREE_SHIPPING_THRESHOLD } from "@/lib/config";
+import { FREE_SHIPPING_THRESHOLD, MAX_ITEM_QUANTITY } from "@/lib/config";
 import { products } from "@/lib/data";
 import { formatCurrency } from "@/lib/format";
 import { useHydrated } from "@/lib/use-hydrated";
@@ -68,7 +68,9 @@ export default function CartPage() {
                     <div className="flex items-center rounded-md border border-slate-300">
                       <button
                         type="button"
-                        className="px-2.5 py-1 text-base"
+                        className="px-2.5 py-1 text-base disabled:opacity-40"
+                        disabled={item.quantity <= 1}
+                        aria-label={`Diminuir quantidade de ${product.name}`}
                         onClick={() => updateQuantity(item.productId, item.size, item.color, item.quantity - 1)}
                       >
                         −
@@ -76,7 +78,9 @@ export default function CartPage() {
                       <span className="w-8 text-center text-sm">{item.quantity}</span>
                       <button
                         type="button"
-                        className="px-2.5 py-1 text-base"
+                        className="px-2.5 py-1 text-base disabled:opacity-40"
+                        disabled={item.quantity >= MAX_ITEM_QUANTITY}
+                        aria-label={`Aumentar quantidade de ${product.name}`}
                         onClick={() => updateQuantity(item.productId, item.size, item.color, item.quantity + 1)}
                       >
                         +

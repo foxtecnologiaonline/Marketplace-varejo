@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Facebook, Instagram, Linkedin } from "lucide-react";
+import { SOCIAL_LINKS } from "@/lib/site";
 
 const institucional = [
   { href: "/sobre", label: "Sobre a Blue Malharia" },
@@ -32,17 +33,43 @@ export function Footer() {
             Blue Malharia — uniformes escolares, esportivos e personalizados direto da
             malharia, com frete para todo o Brasil.
           </p>
-          <div className="mt-4 flex gap-3 text-slate-500">
-            <a href="#" aria-label="Instagram" className="hover:text-brand-600">
-              <Instagram className="h-5 w-5" />
-            </a>
-            <a href="#" aria-label="Facebook" className="hover:text-brand-600">
-              <Facebook className="h-5 w-5" />
-            </a>
-            <a href="#" aria-label="LinkedIn" className="hover:text-brand-600">
-              <Linkedin className="h-5 w-5" />
-            </a>
-          </div>
+          {(SOCIAL_LINKS.instagram || SOCIAL_LINKS.facebook || SOCIAL_LINKS.linkedin) && (
+            <div className="mt-4 flex gap-3 text-slate-500">
+              {SOCIAL_LINKS.instagram && (
+                <a
+                  href={SOCIAL_LINKS.instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Instagram"
+                  className="hover:text-brand-600"
+                >
+                  <Instagram className="h-5 w-5" />
+                </a>
+              )}
+              {SOCIAL_LINKS.facebook && (
+                <a
+                  href={SOCIAL_LINKS.facebook}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Facebook"
+                  className="hover:text-brand-600"
+                >
+                  <Facebook className="h-5 w-5" />
+                </a>
+              )}
+              {SOCIAL_LINKS.linkedin && (
+                <a
+                  href={SOCIAL_LINKS.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="LinkedIn"
+                  className="hover:text-brand-600"
+                >
+                  <Linkedin className="h-5 w-5" />
+                </a>
+              )}
+            </div>
+          )}
         </div>
 
         <div>

@@ -7,6 +7,7 @@ import { ProductCard } from "@/components/product-card";
 import { ProductVariantSelector } from "@/components/product-variant-selector";
 import { getProductBySlug, getRelatedProducts, getStoreBySlug, products } from "@/lib/data";
 import { formatCurrency, formatInstallments } from "@/lib/format";
+import type { Product } from "@/lib/types";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -20,7 +21,40 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const product = getProductBySlug(slug);
   if (!product) return {};
-  return { title: product.name, description: product.description };
+  return {
+    title: product.name,
+    description: product.description,
+    alternates: { canonical: `/produtos/${product.slug}` },
+    openGraph: {
+      title: product.name,
+      description: product.description,
+      images: product.images[0] ? [{ url: product.images[0] }] : undefined,
+      url: `/produtos/${product.slug}`
+    }
+  };
+}
+
+function ProductJsonLd({ product, storeName }: { product: Product; storeName?: string }) {
+  const json = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.description,
+    image: product.images,
+    sku: product.id,
+    brand: storeName ? { "@type": "Brand", name: storeName } : undefined,
+    aggregateRating:
+      product.reviewsCount > 0
+        ? { "@type": "AggregateRating", ratingValue: product.rating, reviewCount: product.reviewsCount }
+        : undefined,
+    offers: {
+      "@type": "Offer",
+      priceCurrency: "BRL",
+      price: product.price.toFixed(2),
+      availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
+    }
+  };
+  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(json) }} />;
 }
 
 export default async function ProductPage({ params }: Props) {
@@ -33,6 +67,7 @@ export default async function ProductPage({ params }: Props) {
 
   return (
     <div className="container-page py-8">
+      <ProductJsonLd product={product} storeName={store?.name} />
       <nav className="mb-6 text-xs text-slate-500">
         <Link href="/" className="hover:text-brand-600">
           Início
