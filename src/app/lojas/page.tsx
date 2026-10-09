@@ -21,7 +21,7 @@ export default function StoresPage() {
             className="card flex flex-col items-center gap-3 p-6 text-center transition hover:shadow-lg"
           >
             <div className="relative h-20 w-20 overflow-hidden rounded-full bg-slate-100">
-              <Image src={store.logo} alt={store.name} fill className="object-cover" />
+              <Image src={store.logo} alt={store.name} fill sizes="80px" className="object-cover" />
             </div>
             <div>
               <p className="font-semibold text-slate-900">{store.name}</p>

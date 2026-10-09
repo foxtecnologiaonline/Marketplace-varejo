@@ -11,19 +11,26 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Mercado Pago não configurado" }, { status: 503 });
   }
 
-  let body: { type?: string; data?: { id?: string }; action?: string };
+  let body: { type?: unknown; action?: unknown; data?: { id?: unknown } };
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: "payload inválido" }, { status: 400 });
   }
 
-  const paymentId = body.data?.id;
-  const isPaymentEvent = body.type === "payment" || body.action?.startsWith("payment.");
+  // O Mercado Pago envia o id ora como número, ora como string.
+  const rawId = body?.data?.id;
+  const paymentId = typeof rawId === "string" || typeof rawId === "number" ? String(rawId) : null;
+  const isPaymentEvent =
+    body?.type === "payment" || (typeof body?.action === "string" && body.action.startsWith("payment."));
 
   if (!isPaymentEvent || !paymentId) {
     // Outros tipos de evento (merchant_order, etc.) são ignorados sem erro.
     return NextResponse.json({ ok: true });
+  }
+
+  if (!/^\d{1,20}$/.test(paymentId)) {
+    return NextResponse.json({ error: "id de pagamento inválido" }, { status: 400 });
   }
 
   try {
@@ -42,9 +49,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "pedido não encontrado" }, { status: 404 });
     }
 
-    // Mercado Pago pode reenviar a mesma notificação (retry) ou disparar mais de um evento
-    // para o mesmo pagamento — sem esta checagem, cada entrega duplicada criaria um novo
-    // registro em "payments" e reenviaria o e-mail de confirmação ao cliente.
     if (order.paymentStatus === "pago") {
       return NextResponse.json({ ok: true, status: "already_processed" });
     }
@@ -60,13 +64,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "valor pago não corresponde ao total do pedido" }, { status: 422 });
     }
 
-    await markOrderPaid({
-      orderId: payment.externalReference,
+    // markOrderPaid é atômico: só quem faz a transição "pendente" -> "pago" recebe true,
+    // então notificações repetidas ou simultâneas não duplicam pagamento nem e-mail.
+    const transitioned = await markOrderPaid({
+      orderId: order.id,
       mpPaymentId: payment.id,
       grossAmount: payment.transactionAmount,
       feeAmount: payment.feeAmount,
       raw: payment.raw
     });
+
+    if (!transitioned) {
+      return NextResponse.json({ ok: true, status: "already_processed" });
+    }
 
     await sendOrderConfirmationEmail({ ...order, paymentStatus: "pago", status: "confirmado" });
 

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Check } from "lucide-react";
 import type { Product } from "@/lib/types";
 import { useCartStore } from "@/lib/cart-store";
+import { MAX_ITEM_QUANTITY } from "@/lib/config";
 
 export function ProductVariantSelector({ product }: { product: Product }) {
   const [size, setSize] = useState<string | null>(null);
@@ -87,7 +88,8 @@ export function ProductVariantSelector({ product }: { product: Product }) {
           <button
             type="button"
             className="px-3 py-1.5 text-lg"
-            onClick={() => setQuantity((q) => q + 1)}
+            disabled={quantity >= MAX_ITEM_QUANTITY}
+            onClick={() => setQuantity((q) => Math.min(MAX_ITEM_QUANTITY, q + 1))}
             aria-label="Aumentar quantidade"
           >
             +

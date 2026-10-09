@@ -17,7 +17,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
 
       {q && result.length === 0 && (
         <p className="card p-8 text-center text-slate-500">
-          Nenhum produto encontrado para "{q}". Tente outro termo ou navegue pelas categorias.
+          Nenhum produto encontrado para &quot;{q}&quot;. Tente outro termo ou navegue pelas categorias.
         </p>
       )}
 

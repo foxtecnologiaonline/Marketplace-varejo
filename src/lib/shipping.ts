@@ -1,4 +1,4 @@
-import { FREE_SHIPPING_THRESHOLD } from "./data";
+import { FREE_SHIPPING_THRESHOLD } from "./config";
 
 export interface ShippingQuote {
   cost: number;

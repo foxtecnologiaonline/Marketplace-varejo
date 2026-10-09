@@ -1,43 +1,22 @@
 "use client";
 
-import { useState } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { stores } from "@/lib/data";
+import { field, useFormSubmit } from "@/lib/use-form-submit";
 import { submitQuoteRequest } from "@/app/cotacao/actions";
 
+const inputClass = "rounded-md border border-slate-300 px-3 py-2 text-sm";
+
 export function QuoteForm() {
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [sent, setSent] = useState(false);
-
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    // Captura a referência do form ANTES do await: o React invalida as
-    // propriedades do SyntheticEvent (e.currentTarget vira null) assim que o
-    // handler atravessa um ponto assíncrono, então usá-la depois do await falha.
-    const formEl = e.currentTarget;
-    setError(null);
-    setSubmitting(true);
-
-    const form = new FormData(formEl);
-    const result = await submitQuoteRequest({
-      customerName: String(form.get("customerName") ?? ""),
-      customerEmail: String(form.get("customerEmail") ?? ""),
-      customerPhone: String(form.get("customerPhone") ?? ""),
-      storeSlug: String(form.get("storeSlug") ?? ""),
-      message: String(form.get("message") ?? "")
-    });
-
-    setSubmitting(false);
-
-    if (!result.success) {
-      setError(result.error);
-      return;
-    }
-
-    setSent(true);
-    formEl.reset();
-  }
+  const { submitting, error, sent, setSent, onSubmit } = useFormSubmit((data) =>
+    submitQuoteRequest({
+      customerName: field(data, "customerName"),
+      customerEmail: field(data, "customerEmail"),
+      customerPhone: field(data, "customerPhone"),
+      storeSlug: field(data, "storeSlug"),
+      message: field(data, "message")
+    })
+  );
 
   if (sent) {
     return (
@@ -55,35 +34,13 @@ export function QuoteForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="card mt-6 flex flex-col gap-4 p-6">
+    <form onSubmit={onSubmit} className="card mt-6 flex flex-col gap-4 p-6">
       <div className="grid gap-4 sm:grid-cols-2">
-        <input
-          name="customerName"
-          required
-          placeholder="Nome completo"
-          className="rounded-md border border-slate-300 px-3 py-2 text-sm"
-        />
-        <input
-          name="customerPhone"
-          required
-          type="tel"
-          placeholder="WhatsApp"
-          className="rounded-md border border-slate-300 px-3 py-2 text-sm"
-        />
+        <input name="customerName" required maxLength={120} placeholder="Nome completo" className={inputClass} />
+        <input name="customerPhone" required type="tel" maxLength={30} placeholder="WhatsApp" className={inputClass} />
       </div>
-      <input
-        name="customerEmail"
-        required
-        type="email"
-        placeholder="E-mail"
-        className="rounded-md border border-slate-300 px-3 py-2 text-sm"
-      />
-      <select
-        name="storeSlug"
-        required
-        defaultValue=""
-        className="rounded-md border border-slate-300 px-3 py-2 text-sm"
-      >
+      <input name="customerEmail" required type="email" maxLength={254} placeholder="E-mail" className={inputClass} />
+      <select name="storeSlug" required defaultValue="" aria-label="Loja ou colégio de interesse" className={inputClass}>
         <option value="" disabled>
           Selecione a loja/colégio de interesse
         </option>
@@ -96,12 +53,17 @@ export function QuoteForm() {
       <textarea
         name="message"
         required
-        placeholder="Quantidade estimada, tamanhos e detalhes do pedido"
+        maxLength={2000}
         rows={4}
-        className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+        placeholder="Quantidade estimada, tamanhos e detalhes do pedido"
+        className={inputClass}
       />
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && (
+        <p role="alert" className="text-sm text-red-600">
+          {error}
+        </p>
+      )}
 
       <button type="submit" disabled={submitting} className="btn-primary">
         {submitting ? "Enviando..." : "Enviar solicitação"}

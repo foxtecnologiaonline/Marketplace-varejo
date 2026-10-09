@@ -1,21 +1,20 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCartStore, cartTotals } from "@/lib/cart-store";
 import { calculateShipping, isValidCep } from "@/lib/shipping";
 import { formatCurrency } from "@/lib/format";
+import { useHydrated } from "@/lib/use-hydrated";
 import { submitCheckout } from "./actions";
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, clear } = useCartStore();
-  const [mounted, setMounted] = useState(false);
+  const hydrated = useHydrated();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cep, setCep] = useState("");
-
-  useEffect(() => setMounted(true), []);
 
   const { subtotal } = cartTotals(items);
   const shipping = useMemo(
@@ -24,7 +23,7 @@ export default function CheckoutPage() {
   );
   const total = subtotal + (shipping?.cost ?? 0);
 
-  if (!mounted) return null;
+  if (!hydrated) return null;
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -32,35 +31,42 @@ export default function CheckoutPage() {
     setSubmitting(true);
 
     const form = new FormData(e.currentTarget);
+    const text = (name: string) => String(form.get(name) ?? "");
 
-    const result = await submitCheckout({
-      customerName: String(form.get("customerName") ?? ""),
-      customerEmail: String(form.get("customerEmail") ?? ""),
-      customerPhone: String(form.get("customerPhone") ?? "") || undefined,
-      cep: String(form.get("cep") ?? ""),
-      city: String(form.get("city") ?? ""),
-      street: String(form.get("street") ?? ""),
-      complement: String(form.get("complement") ?? "") || undefined,
-      items: items.map((i) => ({
-        productId: i.productId,
-        size: i.size,
-        color: i.color,
-        quantity: i.quantity
-      }))
-    });
+    try {
+      const result = await submitCheckout({
+        customerName: text("customerName"),
+        customerEmail: text("customerEmail"),
+        customerPhone: text("customerPhone") || undefined,
+        cep: text("cep"),
+        city: text("city"),
+        street: text("street"),
+        complement: text("complement") || undefined,
+        items: items.map((i) => ({
+          productId: i.productId,
+          size: i.size,
+          color: i.color,
+          quantity: i.quantity
+        }))
+      });
 
-    if (!result.success) {
-      setError(result.error);
+      if (!result.success) {
+        setError(result.error);
+        setSubmitting(false);
+        return;
+      }
+
+      clear();
+
+      if (result.redirectUrl.startsWith("http")) {
+        window.location.href = result.redirectUrl;
+      } else {
+        router.push(result.redirectUrl);
+      }
+    } catch {
+      // Falha de rede/servidor antes da resposta: sem isto o botão ficaria preso em "Processando...".
+      setError("Não foi possível concluir seu pedido agora. Verifique sua conexão e tente novamente.");
       setSubmitting(false);
-      return;
-    }
-
-    clear();
-
-    if (result.redirectUrl.startsWith("http")) {
-      window.location.href = result.redirectUrl;
-    } else {
-      router.push(result.redirectUrl);
     }
   }
 

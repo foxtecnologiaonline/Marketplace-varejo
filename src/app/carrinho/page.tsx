@@ -2,18 +2,18 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { Trash2 } from "lucide-react";
 import { useCartStore, cartTotals } from "@/lib/cart-store";
-import { products, FREE_SHIPPING_THRESHOLD } from "@/lib/data";
+import { FREE_SHIPPING_THRESHOLD } from "@/lib/config";
+import { products } from "@/lib/data";
 import { formatCurrency } from "@/lib/format";
+import { useHydrated } from "@/lib/use-hydrated";
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity } = useCartStore();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const hydrated = useHydrated();
 
-  if (!mounted) return null;
+  if (!hydrated) return null;
 
   const { subtotal } = cartTotals(items);
   const missingForFreeShipping = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal);
@@ -42,7 +42,7 @@ export default function CartPage() {
             return (
               <div key={`${item.productId}-${item.size}-${item.color}`} className="card flex gap-4 p-4">
                 <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-md bg-slate-100">
-                  <Image src={product.images[0]!} alt={product.name} fill className="object-cover" />
+                  <Image src={product.images[0]!} alt={product.name} fill sizes="96px" className="object-cover" />
                 </div>
                 <div className="flex flex-1 flex-col">
                   <div className="flex items-start justify-between gap-2">

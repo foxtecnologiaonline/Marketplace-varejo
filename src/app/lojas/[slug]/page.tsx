@@ -29,7 +29,7 @@ export default async function StorePage({ params }: Props) {
     <div className="container-page py-8">
       <div className="card mb-8 flex flex-col items-center gap-4 p-6 sm:flex-row">
         <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full bg-slate-100">
-          <Image src={store.logo} alt={store.name} fill className="object-cover" />
+          <Image src={store.logo} alt={store.name} fill sizes="80px" className="object-cover" />
         </div>
         <div className="text-center sm:text-left">
           <h1 className="text-2xl font-bold text-slate-900">{store.name}</h1>

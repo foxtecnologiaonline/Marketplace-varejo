@@ -1,7 +1,13 @@
+// Número configurado por NEXT_PUBLIC_WHATSAPP_NUMBER (só dígitos, com DDI+DDD, ex.: 5534999999999).
+// Sem ele o botão não aparece: antes apontava para um número fictício (wa.me/5500000000000),
+// um link morto para quem clicava.
 export function WhatsAppButton() {
+  const number = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER?.replace(/\D/g, "");
+  if (!number) return null;
+
   return (
     <a
-      href="https://wa.me/5500000000000"
+      href={`https://wa.me/${number}`}
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Fale conosco pelo WhatsApp"

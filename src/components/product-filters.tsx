@@ -4,12 +4,14 @@ interface Props {
   categoria?: string;
   loja?: string;
   ordenar?: string;
+  q?: string;
 }
 
-export function ProductFilters({ categoria, loja, ordenar }: Props) {
+export function ProductFilters({ categoria, loja, ordenar, q }: Props) {
   return (
     <form className="card sticky top-24 flex flex-col gap-6 p-5" method="get">
       {ordenar && <input type="hidden" name="ordenar" value={ordenar} />}
+      {q && <input type="hidden" name="q" value={q} />}
 
       <div>
         <h3 className="mb-3 text-sm font-semibold text-slate-900">Categoria</h3>

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { BenefitsBar } from "@/components/benefits-bar";
+import { NewsletterForm } from "@/components/newsletter-form";
 import { ProductCard } from "@/components/product-card";
 import { categories, getFeaturedProducts, stores } from "@/lib/data";
 
@@ -36,6 +37,7 @@ export default function HomePage() {
               src="https://images.unsplash.com/photo-1600857062241-98e5dba7f214?q=80&w=900&auto=format&fit=crop"
               alt="Alunos usando uniformes escolares"
               fill
+              sizes="(min-width: 1280px) 600px, 50vw"
               className="object-cover"
               priority
             />
@@ -60,7 +62,7 @@ export default function HomePage() {
               className="card flex flex-col items-center gap-3 p-5 text-center transition hover:shadow-lg"
             >
               <div className="relative h-16 w-16 overflow-hidden rounded-full bg-slate-100">
-                <Image src={store.logo} alt={store.name} fill className="object-cover" />
+                <Image src={store.logo} alt={store.name} fill sizes="64px" className="object-cover" />
               </div>
               <div>
                 <p className="text-sm font-semibold text-slate-900">{store.name}</p>
@@ -84,6 +86,7 @@ export default function HomePage() {
                 src={category.image}
                 alt={category.name}
                 fill
+                sizes="(min-width: 640px) 20vw, 50vw"
                 className="object-cover transition duration-300 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-black/30" />
@@ -112,22 +115,12 @@ export default function HomePage() {
       <section className="container-page">
         <div className="card flex flex-col items-center gap-4 bg-brand-50 p-8 text-center sm:flex-row sm:justify-between sm:text-left">
           <div>
-            <h2 className="text-lg font-bold text-slate-900">Ganhe 10% na primeira compra</h2>
+            <h2 className="text-lg font-bold text-slate-900">Receba novidades e ofertas</h2>
             <p className="text-sm text-slate-600">
-              Cadastre seu e-mail e receba o cupom BEMVINDO10 e novidades das lojas parceiras.
+              Cadastre seu e-mail e fique por dentro dos lançamentos e promoções da Blue Malharia.
             </p>
           </div>
-          <form className="flex w-full max-w-sm gap-2 sm:w-auto">
-            <input
-              type="email"
-              required
-              placeholder="seu@email.com"
-              className="w-full rounded-md border border-slate-300 px-4 py-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-            />
-            <button type="submit" className="btn-primary whitespace-nowrap">
-              Quero o cupom
-            </button>
-          </form>
+          <NewsletterForm />
         </div>
       </section>
     </div>

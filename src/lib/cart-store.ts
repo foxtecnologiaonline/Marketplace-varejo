@@ -3,7 +3,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { CartItem } from "./types";
-import { getProductBySlug, products } from "./data";
+import { MAX_ITEM_QUANTITY } from "./config";
+import { products } from "./data";
 
 interface CartState {
   items: CartItem[];
@@ -13,38 +14,36 @@ interface CartState {
   clear: () => void;
 }
 
+const sameLine = (i: CartItem, productId: string, size: string, color: string) =>
+  i.productId === productId && i.size === size && i.color === color;
+
+// Mesmo teto validado no servidor: evita o cliente montar um carrinho que o checkout vai recusar.
+const clampQuantity = (quantity: number) => Math.min(MAX_ITEM_QUANTITY, Math.max(1, Math.floor(quantity)));
+
 export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
       addItem: (productId, size, color, quantity = 1) => {
         const items = get().items;
-        const existing = items.find(
-          (i) => i.productId === productId && i.size === size && i.color === color
-        );
+        const existing = items.find((i) => sameLine(i, productId, size, color));
         if (existing) {
           set({
             items: items.map((i) =>
-              i === existing ? { ...i, quantity: i.quantity + quantity } : i
+              i === existing ? { ...i, quantity: clampQuantity(i.quantity + quantity) } : i
             )
           });
         } else {
-          set({ items: [...items, { productId, size, color, quantity }] });
+          set({ items: [...items, { productId, size, color, quantity: clampQuantity(quantity) }] });
         }
       },
       removeItem: (productId, size, color) => {
-        set({
-          items: get().items.filter(
-            (i) => !(i.productId === productId && i.size === size && i.color === color)
-          )
-        });
+        set({ items: get().items.filter((i) => !sameLine(i, productId, size, color)) });
       },
       updateQuantity: (productId, size, color, quantity) => {
         set({
           items: get().items.map((i) =>
-            i.productId === productId && i.size === size && i.color === color
-              ? { ...i, quantity: Math.max(1, quantity) }
-              : i
+            sameLine(i, productId, size, color) ? { ...i, quantity: clampQuantity(quantity) } : i
           )
         });
       },
@@ -63,7 +62,5 @@ export function cartTotals(items: CartItem[]) {
     subtotal += product.price * item.quantity;
     count += item.quantity;
   }
-  return { subtotal, count };
+  return { subtotal: Math.round(subtotal * 100) / 100, count };
 }
-
-export { getProductBySlug };

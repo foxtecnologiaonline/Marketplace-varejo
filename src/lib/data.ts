@@ -181,8 +181,6 @@ export const products: Product[] = [
   })
 ];
 
-export const FREE_SHIPPING_THRESHOLD = 199.9;
-
 export function getStoreBySlug(slug: string): Store | undefined {
   return stores.find((s) => s.slug === slug);
 }

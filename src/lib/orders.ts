@@ -93,6 +93,9 @@ export async function createOrder(input: CreateOrderInput): Promise<Order> {
   );
 
   if (itemsError) {
+    // Sem itens o pedido não vale nada: remove o registro para não deixar um pedido
+    // "novo/pendente" órfão no banco (e na futura fila do ERP).
+    await supabase.from("orders").delete().eq("id", order.id);
     throw new Error(`Falha ao criar itens do pedido: ${itemsError.message}`);
   }
 
@@ -108,38 +111,66 @@ export async function createOrder(input: CreateOrderInput): Promise<Order> {
 export async function attachPaymentPreference(orderId: string, preferenceId: string): Promise<void> {
   if (!isDatabaseConfigured()) return;
   const supabase = getSupabaseAdmin();
-  await supabase.from("orders").update({ mp_preference_id: preferenceId }).eq("id", orderId);
+  const { error } = await supabase.from("orders").update({ mp_preference_id: preferenceId }).eq("id", orderId);
+  if (error) {
+    throw new Error(`Falha ao vincular a preferência de pagamento ao pedido: ${error.message}`);
+  }
 }
 
+/**
+ * Marca o pedido como pago de forma atômica: o UPDATE só afeta pedidos que ainda
+ * não estão "pago", então duas notificações concorrentes do mesmo pagamento não
+ * passam ambas. Devolve true só para quem de fato fez a transição (é quem deve
+ * enviar o e-mail); false significa que já estava processado. Erros de banco
+ * sobem como exceção para o webhook responder 5xx e o Mercado Pago tentar de novo.
+ */
 export async function markOrderPaid(params: {
   orderId: string;
   mpPaymentId: string;
   grossAmount: number;
   feeAmount: number;
   raw: unknown;
-}): Promise<void> {
+}): Promise<boolean> {
   if (!isDatabaseConfigured()) {
     console.warn("[orders] pagamento confirmado mas banco não configurado, nada foi atualizado.", params.orderId);
-    return;
+    return false;
   }
 
   const supabase = getSupabaseAdmin();
 
-  await supabase
+  const { data: updated, error: updateError } = await supabase
     .from("orders")
     .update({ payment_status: "pago", status: "confirmado", mp_payment_id: params.mpPaymentId })
-    .eq("id", params.orderId);
+    .eq("id", params.orderId)
+    .neq("payment_status", "pago")
+    .select("id");
 
-  await supabase.from("payments").insert({
+  if (updateError) {
+    throw new Error(`Falha ao marcar pedido ${params.orderId} como pago: ${updateError.message}`);
+  }
+  if (!updated || updated.length === 0) {
+    return false;
+  }
+
+  const { error: paymentError } = await supabase.from("payments").insert({
     order_id: params.orderId,
     gateway: "mercadopago",
+    gateway_payment_id: params.mpPaymentId,
     gross_amount: params.grossAmount,
     fee_amount: params.feeAmount,
-    net_amount: params.grossAmount - params.feeAmount,
+    net_amount: Math.round((params.grossAmount - params.feeAmount) * 100) / 100,
     status: "pago",
     paid_at: new Date().toISOString(),
     raw: params.raw
   });
+
+  // 23505 = violação de unicidade: o pagamento já estava registrado (ex.: corrida
+  // entre entregas do mesmo webhook). Não é falha.
+  if (paymentError && paymentError.code !== "23505") {
+    throw new Error(`Pedido ${params.orderId} marcado como pago, mas falhou ao registrar o pagamento: ${paymentError.message}`);
+  }
+
+  return true;
 }
 
 export async function getOrderById(orderId: string): Promise<Order | null> {

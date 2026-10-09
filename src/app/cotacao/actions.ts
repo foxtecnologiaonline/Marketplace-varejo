@@ -2,14 +2,18 @@
 
 import { z } from "zod";
 import { getStoreBySlug } from "@/lib/data";
-import { sendQuoteRequestEmail } from "@/lib/email";
+import { sendContactEmail } from "@/lib/email";
 
 const quoteSchema = z.object({
-  customerName: z.string().trim().min(3, "Informe o nome completo"),
-  customerEmail: z.string().trim().email("E-mail inválido"),
-  customerPhone: z.string().trim().min(8, "Informe um WhatsApp válido"),
-  storeSlug: z.string().min(1, "Selecione a loja/colégio de interesse"),
-  message: z.string().trim().min(10, "Descreva quantidade estimada e detalhes do pedido")
+  customerName: z.string().trim().min(3, "Informe o nome completo").max(120, "Nome muito longo"),
+  customerEmail: z.string().trim().email("E-mail inválido").max(254, "E-mail muito longo"),
+  customerPhone: z.string().trim().min(8, "Informe um WhatsApp válido").max(30, "WhatsApp inválido"),
+  storeSlug: z.string().min(1, "Selecione a loja/colégio de interesse").max(80),
+  message: z
+    .string()
+    .trim()
+    .min(10, "Descreva quantidade estimada e detalhes do pedido")
+    .max(2000, "Mensagem muito longa (máx. 2000 caracteres)")
 });
 
 export type QuoteInput = z.infer<typeof quoteSchema>;
@@ -28,11 +32,11 @@ export async function submitQuoteRequest(input: QuoteInput): Promise<QuoteResult
   }
 
   try {
-    await sendQuoteRequestEmail({
+    await sendContactEmail({
       customerName: data.customerName,
       customerEmail: data.customerEmail,
       customerPhone: data.customerPhone,
-      storeName: store.name,
+      topic: `Nova cotação institucional — ${store.name}`,
       message: data.message
     });
     return { success: true };

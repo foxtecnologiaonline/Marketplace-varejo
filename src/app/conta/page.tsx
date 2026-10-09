@@ -3,31 +3,27 @@ import Link from "next/link";
 
 export const metadata: Metadata = { title: "Minha conta" };
 
+// O login/cadastro real ainda não existe (ver docs/ESCOPO.md, roadmap: autenticação).
+// Antes havia formulários com campo de senha sem `action`: o navegador os enviava por
+// GET, deixando a senha na URL/histórico. Até a autenticação ser implementada, esta
+// página orienta o cliente sem coletar nenhuma credencial.
 export default function AccountPage() {
   return (
     <div className="container-page py-12">
-      <div className="mx-auto grid max-w-4xl gap-8 sm:grid-cols-2">
-        <form className="card flex flex-col gap-4 p-6">
-          <h2 className="text-lg font-bold text-slate-900">Entrar</h2>
-          <input required type="email" placeholder="E-mail" className="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-          <input required type="password" placeholder="Senha" className="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-          <button type="submit" className="btn-primary">
-            Entrar
-          </button>
-          <Link href="/conta/pedidos" className="text-center text-sm text-brand-600 hover:underline">
-            Ver meus pedidos
+      <div className="card mx-auto flex max-w-xl flex-col items-center gap-4 p-8 text-center">
+        <h1 className="text-xl font-bold text-slate-900">Área do cliente em breve</h1>
+        <p className="text-sm text-slate-600">
+          Você não precisa de conta para comprar. O acompanhamento do pedido e o código de rastreio
+          são enviados por e-mail. Se precisar de ajuda com uma compra, fale com a gente.
+        </p>
+        <div className="flex flex-wrap justify-center gap-3">
+          <Link href="/produtos" className="btn-primary">
+            Ver produtos
           </Link>
-        </form>
-
-        <form className="card flex flex-col gap-4 p-6">
-          <h2 className="text-lg font-bold text-slate-900">Criar uma conta</h2>
-          <input required placeholder="Nome completo" className="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-          <input required type="email" placeholder="E-mail" className="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-          <input required type="password" placeholder="Senha" className="rounded-md border border-slate-300 px-3 py-2 text-sm" />
-          <button type="submit" className="btn-secondary">
-            Cadastrar
-          </button>
-        </form>
+          <Link href="/atendimento" className="btn-secondary">
+            Falar com o atendimento
+          </Link>
+        </div>
       </div>
     </div>
   );

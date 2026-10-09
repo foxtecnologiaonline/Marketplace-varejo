@@ -1,15 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useCartStore, cartTotals } from "@/lib/cart-store";
+import { useHydrated } from "@/lib/use-hydrated";
 
 export function CartIndicator() {
   const items = useCartStore((s) => s.items);
-  const [mounted, setMounted] = useState(false);
+  const hydrated = useHydrated();
 
-  useEffect(() => setMounted(true), []);
-
-  const count = mounted ? cartTotals(items).count : 0;
+  const count = hydrated ? cartTotals(items).count : 0;
   if (count === 0) return null;
 
   return (

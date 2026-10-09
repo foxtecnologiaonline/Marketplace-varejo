@@ -1,4 +1,4 @@
-import { FREE_SHIPPING_THRESHOLD } from "@/lib/data";
+import { FREE_SHIPPING_THRESHOLD } from "@/lib/config";
 import { formatCurrency } from "@/lib/format";
 
 export function TopBar() {

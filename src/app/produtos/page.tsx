@@ -28,7 +28,7 @@ export default async function ProductsPage({ searchParams }: Props) {
       </h1>
 
       <div className="grid gap-8 lg:grid-cols-[260px_1fr]">
-        <ProductFilters categoria={categoria} loja={loja} ordenar={ordenar} />
+        <ProductFilters categoria={categoria} loja={loja} ordenar={ordenar} q={q} />
 
         <div>
           <div className="mb-4 flex items-center justify-between text-sm text-slate-600">
