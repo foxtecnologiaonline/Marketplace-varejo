@@ -1,8 +1,9 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Facebook, Instagram, Linkedin } from "lucide-react";
 
 const institucional = [
-  { href: "/sobre", label: "Sobre o marketplace" },
+  { href: "/sobre", label: "Sobre a Blue Malharia" },
   { href: "/privacidade", label: "Política de Privacidade" },
   { href: "/trocas-devolucoes", label: "Trocas e Devoluções" },
   { href: "/regulamento", label: "Regulamento" }
@@ -20,12 +21,16 @@ export function Footer() {
     <footer className="mt-16 border-t border-slate-200 bg-white">
       <div className="container-page grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <p className="text-lg font-extrabold text-brand-700">
-            Varejo<span className="text-accent-500">+</span>
-          </p>
+          <Image
+            src="/brand/logo.jpg"
+            alt="Blue Malharia"
+            width={56}
+            height={56}
+            className="h-14 w-14 rounded-md object-cover"
+          />
           <p className="mt-3 text-sm text-slate-600">
-            Marketplace de uniformes escolares, esportivos e personalizados, conectando lojas
-            parceiras e famílias em todo o Brasil.
+            Blue Malharia — uniformes escolares, esportivos e personalizados direto da
+            malharia, com frete para todo o Brasil.
           </p>
           <div className="mt-4 flex gap-3 text-slate-500">
             <a href="#" aria-label="Instagram" className="hover:text-brand-600">
@@ -76,7 +81,7 @@ export function Footer() {
       </div>
 
       <div className="border-t border-slate-100 py-4 text-center text-xs text-slate-500">
-        © {new Date().getFullYear()} Varejo+ Marketplace. CNPJ 00.000.000/0001-00. Todos os direitos reservados.
+        © {new Date().getFullYear()} Blue Malharia. CNPJ 00.000.000/0001-00. Todos os direitos reservados.
       </div>
     </footer>
   );

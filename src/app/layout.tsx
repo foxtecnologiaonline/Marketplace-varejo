@@ -7,11 +7,11 @@ import { WhatsAppButton } from "@/components/whatsapp-button";
 
 export const metadata: Metadata = {
   title: {
-    default: "Varejo Marketplace | Uniformes e moda escolar",
-    template: "%s | Varejo Marketplace"
+    default: "Blue Malharia | Uniformes e moda em malha",
+    template: "%s | Blue Malharia"
   },
   description:
-    "Marketplace de uniformes escolares, esportivos e personalizados. Compre direto das lojas parceiras com frete para todo o Brasil."
+    "Blue Malharia — uniformes escolares, esportivos e personalizados direto da malharia, com frete para todo o Brasil."
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Heart, Search, ShoppingCart, User } from "lucide-react";
 import { stores } from "@/lib/data";
@@ -7,8 +8,15 @@ export function Header() {
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
       <div className="container-page flex items-center gap-4 py-4">
-        <Link href="/" className="shrink-0 text-xl font-extrabold tracking-tight text-brand-700">
-          Varejo<span className="text-accent-500">+</span>
+        <Link href="/" className="shrink-0">
+          <Image
+            src="/brand/logo.jpg"
+            alt="Blue Malharia"
+            width={48}
+            height={48}
+            className="h-12 w-12 rounded-md object-cover"
+            priority
+          />
         </Link>
 
         <form action="/busca" className="hidden flex-1 items-center md:flex">

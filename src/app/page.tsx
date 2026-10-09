@@ -13,7 +13,7 @@ export default function HomePage() {
         <div className="container-page grid items-center gap-8 py-14 sm:grid-cols-2">
           <div>
             <p className="text-sm font-semibold uppercase tracking-wide text-brand-200">
-              O maior marketplace de uniformes do Brasil
+              Blue Malharia — direto da malharia para você
             </p>
             <h1 className="mt-3 text-3xl font-extrabold leading-tight sm:text-4xl">
               Encontre o uniforme do seu colégio em um só lugar

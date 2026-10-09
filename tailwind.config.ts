@@ -5,18 +5,19 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // Paleta extraída da logo da Blue Malharia (azul-marinho + azul médio + ciano).
         brand: {
-          50: "#eef6ff",
-          100: "#d9ecff",
-          200: "#bcdcff",
-          300: "#8ec4ff",
-          400: "#58a2ff",
-          500: "#2f80f6",
-          600: "#1c5fd1",
-          700: "#1a4ba8",
-          800: "#1b3f87",
-          900: "#1b3670",
-          950: "#13223f"
+          50: "#eaf6fc",
+          100: "#cdeaf7",
+          200: "#9ad8f0",
+          300: "#5cc0e6",
+          400: "#2aa8d8",
+          500: "#1c87bc",
+          600: "#156ca0",
+          700: "#135884",
+          800: "#15476a",
+          900: "#1a3a58",
+          950: "#141f4a"
         },
         accent: {
           500: "#f97316",
