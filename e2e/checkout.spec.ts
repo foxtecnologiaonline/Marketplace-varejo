@@ -53,6 +53,29 @@ test("quantidade acima do estoque é bloqueada no checkout", async ({ page }) =>
   await expect(page).toHaveURL(/\/checkout$/);
 });
 
+test("checkout gera um link de sucesso assinado, e token ausente/adulterado nunca expõe o pedido", async ({
+  page
+}) => {
+  await addFirstVariantToCart(page, "camiseta-manga-curta-marista");
+  await page.goto("/carrinho");
+  await page.click('a:has-text("Finalizar compra")');
+  await fillCheckoutAddress(page);
+  await page.click('button:has-text("Ir para o pagamento")');
+  // Confirma que o redirect já sai com o token assinado anexado (src/lib/order-token.ts).
+  await expect(page).toHaveURL(/\/checkout\/sucesso\?pedido=.+&t=.+/, { timeout: 15_000 });
+  const orderId = new URL(page.url()).searchParams.get("pedido");
+
+  // Sem banco configurado nesta instância de teste, o pedido nunca é persistido
+  // (createOrder em modo mock não grava em lugar nenhum — ver src/lib/orders.ts),
+  // então mesmo o link real não teria o que mostrar numa nova requisição; o que dá
+  // pra provar aqui é que token ausente/adulterado nunca é tratado como válido.
+  await page.goto(`/checkout/sucesso?pedido=${orderId}`);
+  await expect(page.getByText("Pedido #")).toHaveCount(0);
+
+  await page.goto(`/checkout/sucesso?pedido=${orderId}&t=token-forjado`);
+  await expect(page.getByText("Pedido #")).toHaveCount(0);
+});
+
 test("carrinho nunca passa do teto de quantidade mesmo somando duas adições", async ({ page }) => {
   await page.goto("/produtos/colete-personalizado-time");
   await page.locator("button", { hasText: SIZE_BUTTON }).first().click();

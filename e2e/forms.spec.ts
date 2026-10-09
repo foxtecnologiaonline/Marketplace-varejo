@@ -41,3 +41,11 @@ test("/conta não coleta senha por formulário sem action", async ({ page }) => 
   await page.goto("/conta");
   await expect(page.locator('input[type="password"]')).toHaveCount(0);
 });
+
+test("/conta mostra aviso honesto quando o Supabase Auth não está configurado", async ({ page }) => {
+  // Nesta instância de teste não há NEXT_PUBLIC_SUPABASE_URL/ANON_KEY: deve cair no
+  // aviso "em breve", nunca mostrar um formulário de login que não vai funcionar.
+  await page.goto("/conta");
+  await expect(page.getByText("Área do cliente em breve")).toBeVisible();
+  await expect(page.getByPlaceholder("seu@email.com")).toHaveCount(0);
+});

@@ -1,13 +1,26 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { LoginForm } from "@/components/login-form";
+import { isSupabaseAuthConfigured } from "@/lib/supabase-browser";
 
 export const metadata: Metadata = { title: "Minha conta" };
 
-// O login/cadastro real ainda não existe (ver docs/ESCOPO.md, roadmap: autenticação).
-// Antes havia formulários com campo de senha sem `action`: o navegador os enviava por
-// GET, deixando a senha na URL/histórico. Até a autenticação ser implementada, esta
-// página orienta o cliente sem coletar nenhuma credencial.
+// Antes havia formulários com campo de senha sem `action`: o navegador os enviava
+// por GET, deixando a senha na URL/histórico. Agora: login real por link mágico
+// (Supabase Auth) quando NEXT_PUBLIC_SUPABASE_URL/ANON_KEY estão configurados; sem
+// isso, mantém o aviso honesto de antes em vez de mostrar um formulário morto.
 export default function AccountPage() {
+  if (isSupabaseAuthConfigured()) {
+    return (
+      <div className="container-page py-12">
+        <div className="mx-auto max-w-md">
+          <h1 className="mb-4 text-center text-xl font-bold text-slate-900">Minha conta</h1>
+          <LoginForm />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container-page py-12">
       <div className="card mx-auto flex max-w-xl flex-col items-center gap-4 p-8 text-center">

@@ -2,14 +2,19 @@ import Link from "next/link";
 import { CheckCircle2, Clock } from "lucide-react";
 import { getOrderById } from "@/lib/orders";
 import { formatCurrency } from "@/lib/format";
+import { verifyOrderToken } from "@/lib/order-token";
 
 interface Props {
-  searchParams: Promise<{ pedido?: string }>;
+  searchParams: Promise<{ pedido?: string; t?: string }>;
 }
 
 export default async function CheckoutSuccessPage({ searchParams }: Props) {
-  const { pedido } = await searchParams;
-  const order = pedido ? await getOrderById(pedido) : null;
+  const { pedido, t } = await searchParams;
+  // Sem o token assinado (ver src/lib/order-token.ts), qualquer um com o UUID do
+  // pedido em mãos — link compartilhado, histórico do navegador — veria nome,
+  // endereço, itens e total de outra pessoa. O token é obrigatório para os dois
+  // casos (pago e pendente); sem ele, a página se comporta como "pedido" ausente.
+  const order = pedido && verifyOrderToken(pedido, t) ? await getOrderById(pedido) : null;
   const isPaid = order?.paymentStatus === "pago";
 
   return (

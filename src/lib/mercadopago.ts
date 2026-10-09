@@ -1,6 +1,7 @@
 import "server-only";
 import type { Order } from "./orders";
 import { centsToReais, reaisToCents, sumCents } from "./money";
+import { signOrderToken } from "./order-token";
 
 const MP_API = "https://api.mercadopago.com";
 const EXTERNAL_TIMEOUT_MS = 10_000;
@@ -56,8 +57,8 @@ export async function createPaymentPreference(
       },
       external_reference: order.id,
       back_urls: {
-        success: `${siteUrl}/checkout/sucesso?pedido=${order.id}`,
-        pending: `${siteUrl}/checkout/sucesso?pedido=${order.id}`,
+        success: `${siteUrl}/checkout/sucesso?pedido=${order.id}&t=${signOrderToken(order.id)}`,
+        pending: `${siteUrl}/checkout/sucesso?pedido=${order.id}&t=${signOrderToken(order.id)}`,
         failure: `${siteUrl}/checkout?erro=pagamento`
       },
       auto_return: "approved",

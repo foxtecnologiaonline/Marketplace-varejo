@@ -7,6 +7,7 @@ import { calculateShipping, isValidCep } from "@/lib/shipping";
 import { centsToReais, lineTotalCents, reaisToCents, sumCents } from "@/lib/money";
 import { attachPaymentPreference, type OrderItemInput } from "@/lib/orders";
 import { createOrderWithStockCheck, getProductByIdFromCatalog } from "@/lib/catalog";
+import { signOrderToken } from "@/lib/order-token";
 import { createPaymentPreference, isMercadoPagoConfigured } from "@/lib/mercadopago";
 import { sendOrderConfirmationEmail } from "@/lib/email";
 import { isDatabaseConfigured } from "@/lib/supabase-server";
@@ -163,7 +164,7 @@ export async function submitCheckout(input: CheckoutInput): Promise<CheckoutResu
     // manualmente até o Mercado Pago ser habilitado (ver docs/ESCOPO-FASE2.md §5).
     await sendOrderConfirmationEmail(order);
 
-    return { success: true, redirectUrl: `/checkout/sucesso?pedido=${order.id}` };
+    return { success: true, redirectUrl: `/checkout/sucesso?pedido=${order.id}&t=${signOrderToken(order.id)}` };
   } catch (error) {
     // Nunca deixamos uma falha de infraestrutura (config ausente, Supabase ou
     // Mercado Pago fora do ar) virar um erro de Server Component sem mensagem
