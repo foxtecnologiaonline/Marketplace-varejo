@@ -3,10 +3,10 @@
 import { headers } from "next/headers";
 import { z } from "zod";
 import { MAX_ITEM_QUANTITY } from "@/lib/config";
-import { products } from "@/lib/data";
 import { calculateShipping, isValidCep } from "@/lib/shipping";
 import { centsToReais, lineTotalCents, reaisToCents, sumCents } from "@/lib/money";
-import { createOrder, attachPaymentPreference, type OrderItemInput } from "@/lib/orders";
+import { attachPaymentPreference, type OrderItemInput } from "@/lib/orders";
+import { createOrderWithStockCheck, getProductByIdFromCatalog } from "@/lib/catalog";
 import { createPaymentPreference, isMercadoPagoConfigured } from "@/lib/mercadopago";
 import { sendOrderConfirmationEmail } from "@/lib/email";
 import { isDatabaseConfigured } from "@/lib/supabase-server";
@@ -72,10 +72,13 @@ export async function submitCheckout(input: CheckoutInput): Promise<CheckoutResu
 
   try {
     // Preço é sempre recalculado a partir do catálogo no servidor — nunca confiamos
-    // no valor que o carrinho do cliente possa enviar.
+    // no valor que o carrinho do cliente possa enviar. getProductByIdFromCatalog
+    // consulta o Supabase quando configurado (ver src/lib/catalog.ts), senão cai no
+    // catálogo mock — este é só o pré-check pra dar um erro rápido e claro; a baixa
+    // de estoque de verdade, atômica, acontece dentro de createOrderWithStockCheck.
     const orderItems: OrderItemInput[] = [];
     for (const cartItem of data.items) {
-      const product = products.find((p) => p.id === cartItem.productId);
+      const product = await getProductByIdFromCatalog(cartItem.productId);
       if (!product) {
         return { success: false, error: "Um dos produtos do carrinho não existe mais." };
       }
@@ -118,7 +121,7 @@ export async function submitCheckout(input: CheckoutInput): Promise<CheckoutResu
       );
     }
 
-    const order = await createOrder({
+    const result = await createOrderWithStockCheck({
       customerName: data.customerName,
       customerEmail: data.customerEmail,
       customerPhone: data.customerPhone,
@@ -134,6 +137,13 @@ export async function submitCheckout(input: CheckoutInput): Promise<CheckoutResu
       total,
       items: orderItems
     });
+
+    if (!result.success) {
+      // Estoque mudou entre o pré-check acima e a gravação (corrida com outro
+      // pedido simultâneo) — a RPC atômica pegou o que o pré-check não pegaria.
+      return { success: false, error: result.error };
+    }
+    const order = result.order;
 
     if (isMercadoPagoConfigured()) {
       // resolveSiteUrl() só é chamada aqui dentro: ela exige NEXT_PUBLIC_SITE_URL em
