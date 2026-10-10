@@ -83,6 +83,8 @@ export async function createOrderWithStockCheck(input: CreateOrderInput): Promis
     p_subtotal: input.subtotal,
     p_total: input.total,
     p_store_slug: input.storeSlug ?? null,
+    p_coupon_code: input.couponCode ?? null,
+    p_discount: input.discount ?? 0,
     p_items: input.items.map((item) => ({
       product_id: item.productId,
       name: item.name,

@@ -1,4 +1,4 @@
-import type { Category, Product, Store } from "./types";
+import type { Category, Color, Product, Store } from "./types";
 
 // Camada de dados mock. Em produção, estas funções passam a consultar
 // o banco (Prisma/Supabase) mantendo a mesma assinatura, sem tocar nas páginas.
@@ -207,6 +207,7 @@ export interface ProductFilters {
   category?: string;
   store?: string;
   size?: string;
+  color?: string;
   minPrice?: number;
   maxPrice?: number;
   query?: string;
@@ -224,6 +225,9 @@ export function searchProducts(filters: ProductFilters): Product[] {
   }
   if (filters.size) {
     result = result.filter((p) => p.sizes.includes(filters.size!));
+  }
+  if (filters.color) {
+    result = result.filter((p) => p.colors.some((c) => c.name === filters.color));
   }
   if (typeof filters.minPrice === "number") {
     result = result.filter((p) => p.price >= filters.minPrice!);
@@ -248,4 +252,16 @@ export function searchProducts(filters: ProductFilters): Product[] {
   }
 
   return result;
+}
+
+export function getAvailableSizes(): string[] {
+  const all = new Set<string>();
+  for (const p of products) for (const s of p.sizes) all.add(s);
+  return Array.from(all);
+}
+
+export function getAvailableColors(): Color[] {
+  const seen = new Map<string, Color>();
+  for (const p of products) for (const c of p.colors) seen.set(c.name, c);
+  return Array.from(seen.values());
 }

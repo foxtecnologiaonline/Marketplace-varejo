@@ -5,6 +5,7 @@ import { z } from "zod";
 import { MAX_ITEM_QUANTITY } from "@/lib/config";
 import { calculateShipping, isValidCep } from "@/lib/shipping";
 import { centsToReais, lineTotalCents, reaisToCents, sumCents } from "@/lib/money";
+import { validateCoupon } from "@/lib/coupons";
 import { attachPaymentPreference, type OrderItemInput } from "@/lib/orders";
 import { createOrderWithStockCheck, getProductByIdFromCatalog } from "@/lib/catalog";
 import { signOrderToken } from "@/lib/order-token";
@@ -32,6 +33,7 @@ const checkoutSchema = z.object({
   city: z.string().trim().min(2, "Informe a cidade").max(100, "Cidade muito longa"),
   street: z.string().trim().min(3, "Informe o endereço").max(200, "Endereço muito longo"),
   complement: z.string().trim().max(100, "Complemento muito longo").optional(),
+  couponCode: z.string().trim().max(30, "Cupom inválido").optional(),
   items: z.array(cartItemSchema).min(1, "Carrinho vazio").max(50, "Itens demais no carrinho")
 });
 
@@ -111,7 +113,22 @@ export async function submitCheckout(input: CheckoutInput): Promise<CheckoutResu
     const subtotalCents = sumCents(orderItems.map((item) => lineTotalCents(item.unitPrice, item.quantity)));
     const subtotal = centsToReais(subtotalCents);
     const shipping = calculateShipping(data.cep, subtotal);
-    const total = centsToReais(subtotalCents + reaisToCents(shipping.cost));
+    const shippingCents = reaisToCents(shipping.cost);
+
+    // O desconto é sempre recalculado aqui a partir do subtotal/frete do servidor —
+    // nunca confiamos num valor de desconto que o cliente diga ter calculado.
+    let discountCents = 0;
+    if (data.couponCode) {
+      const couponResult = validateCoupon(data.couponCode, subtotalCents, shippingCents);
+      if (!couponResult.valid) {
+        return { success: false, error: couponResult.error };
+      }
+      discountCents = couponResult.discountCents;
+    }
+
+    const totalCents = subtotalCents + shippingCents - discountCents;
+    const total = centsToReais(totalCents);
+    const discount = centsToReais(discountCents);
 
     // Nunca cobrar sem ter onde registrar o pedido: com o gateway ativo e o banco ausente,
     // o webhook confirmaria um pagamento de um pedido que não existe em lugar nenhum.
@@ -136,6 +153,8 @@ export async function submitCheckout(input: CheckoutInput): Promise<CheckoutResu
       shippingCost: shipping.cost,
       subtotal,
       total,
+      couponCode: data.couponCode ? data.couponCode.trim().toUpperCase() : undefined,
+      discount,
       items: orderItems
     });
 

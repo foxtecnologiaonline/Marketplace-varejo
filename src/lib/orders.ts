@@ -29,6 +29,8 @@ export interface CreateOrderInput {
   shippingCost: number;
   subtotal: number;
   total: number;
+  couponCode?: string;
+  discount?: number;
   items: OrderItemInput[];
 }
 
@@ -72,7 +74,9 @@ export async function createOrder(input: CreateOrderInput): Promise<Order> {
       shipping_address: input.shippingAddress,
       shipping_cost: input.shippingCost,
       subtotal: input.subtotal,
-      total: input.total
+      total: input.total,
+      coupon_code: input.couponCode ?? null,
+      discount: input.discount ?? 0
     })
     .select("id, status, payment_status")
     .single();
@@ -181,7 +185,7 @@ export async function getOrderById(orderId: string): Promise<Order | null> {
   const { data: order } = await supabase
     .from("orders")
     .select(
-      "id, status, payment_status, customer_name, customer_email, customer_phone, shipping_address, shipping_cost, subtotal, total, store_slug"
+      "id, status, payment_status, customer_name, customer_email, customer_phone, shipping_address, shipping_cost, subtotal, total, store_slug, coupon_code, discount"
     )
     .eq("id", orderId)
     .single();
@@ -205,6 +209,8 @@ export async function getOrderById(orderId: string): Promise<Order | null> {
     subtotal: order.subtotal,
     total: order.total,
     storeSlug: order.store_slug ?? undefined,
+    couponCode: order.coupon_code ?? undefined,
+    discount: order.discount ?? 0,
     persisted: true,
     items: (items ?? []).map((i) => ({
       productId: i.product_id,

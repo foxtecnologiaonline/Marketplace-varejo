@@ -8,6 +8,7 @@ import { formatCurrency } from "@/lib/format";
 import { useHydrated } from "@/lib/use-hydrated";
 import { lookupCep } from "@/lib/viacep";
 import { submitCheckout } from "./actions";
+import { previewCoupon } from "./coupon-actions";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -19,13 +20,40 @@ export default function CheckoutPage() {
   const [city, setCity] = useState("");
   const [street, setStreet] = useState("");
   const [cepLookup, setCepLookup] = useState<"idle" | "loading" | "found" | "not-found">("idle");
+  const [couponInput, setCouponInput] = useState("");
+  const [coupon, setCoupon] = useState<{ code: string; description: string; discount: number } | null>(null);
+  const [couponStatus, setCouponStatus] = useState<"idle" | "checking" | "error">("idle");
+  const [couponError, setCouponError] = useState<string | null>(null);
 
   const { subtotal } = cartTotals(items);
   const shipping = useMemo(
     () => (isValidCep(cep) ? calculateShipping(cep, subtotal) : null),
     [cep, subtotal]
   );
-  const total = subtotal + (shipping?.cost ?? 0);
+  const discount = coupon?.discount ?? 0;
+  const total = Math.max(0, subtotal + (shipping?.cost ?? 0) - discount);
+
+  async function handleApplyCoupon() {
+    if (!couponInput.trim()) return;
+    setCouponStatus("checking");
+    setCouponError(null);
+    const result = await previewCoupon(couponInput, subtotal, shipping?.cost ?? 0);
+    if (!result.valid) {
+      setCoupon(null);
+      setCouponStatus("error");
+      setCouponError(result.error);
+      return;
+    }
+    setCoupon({ code: result.code, description: result.description, discount: result.discount });
+    setCouponStatus("idle");
+  }
+
+  function handleRemoveCoupon() {
+    setCoupon(null);
+    setCouponInput("");
+    setCouponStatus("idle");
+    setCouponError(null);
+  }
 
   // Autopreenche cidade/endereço pelo CEP (ViaCEP, API pública). Nunca sobrescreve o
   // que a pessoa já digitou: só preenche campos vazios, e ela pode sempre editar.
@@ -69,6 +97,7 @@ export default function CheckoutPage() {
         city: text("city"),
         street: text("street"),
         complement: text("complement") || undefined,
+        couponCode: coupon?.code,
         items: items.map((i) => ({
           productId: i.productId,
           size: i.size,
@@ -179,9 +208,45 @@ export default function CheckoutPage() {
             <span>{shipping?.label ?? "Frete"}</span>
             <span>{shipping ? formatCurrency(shipping.cost) : "informe o CEP"}</span>
           </div>
+          {coupon && (
+            <div className="mt-1 flex justify-between text-sm text-emerald-600">
+              <span>Cupom {coupon.code}</span>
+              <span>-{formatCurrency(coupon.discount)}</span>
+            </div>
+          )}
           <div className="mt-2 flex justify-between border-t border-slate-200 pt-3 text-base font-bold text-slate-900">
             <span>Total</span>
             <span>{formatCurrency(total)}</span>
+          </div>
+
+          <div className="mt-4 border-t border-slate-200 pt-4">
+            {coupon ? (
+              <div className="flex items-center justify-between gap-2 text-sm">
+                <span className="text-slate-600">{coupon.description}</span>
+                <button type="button" onClick={handleRemoveCoupon} className="text-xs font-medium text-slate-500 underline">
+                  Remover
+                </button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Cupom de desconto"
+                  value={couponInput}
+                  onChange={(e) => setCouponInput(e.target.value)}
+                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm uppercase"
+                />
+                <button
+                  type="button"
+                  onClick={handleApplyCoupon}
+                  disabled={couponStatus === "checking" || !couponInput.trim()}
+                  className="btn-secondary px-3 py-2 text-xs"
+                >
+                  {couponStatus === "checking" ? "..." : "Aplicar"}
+                </button>
+              </div>
+            )}
+            {couponError && <p className="mt-1 text-xs text-red-600">{couponError}</p>}
           </div>
 
           {error && <p className="mt-3 text-sm text-red-600">{error}</p>}

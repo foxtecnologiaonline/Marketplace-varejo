@@ -47,6 +47,12 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
               </li>
             ))}
           </ul>
+          {!!order.discount && (
+            <div className="mt-2 flex justify-between text-sm text-emerald-600">
+              <span>Cupom {order.couponCode}</span>
+              <span>-{formatCurrency(order.discount)}</span>
+            </div>
+          )}
           <div className="mt-3 flex justify-between border-t border-slate-200 pt-3 text-sm font-bold text-slate-900">
             <span>Total</span>
             <span>{formatCurrency(order.total)}</span>

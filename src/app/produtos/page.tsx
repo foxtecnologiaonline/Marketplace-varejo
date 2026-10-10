@@ -6,18 +6,33 @@ import { searchProducts } from "@/lib/data";
 export const metadata: Metadata = { title: "Produtos" };
 
 interface Props {
-  searchParams: Promise<{ categoria?: string; loja?: string; ordenar?: string; q?: string }>;
+  searchParams: Promise<{
+    categoria?: string;
+    loja?: string;
+    ordenar?: string;
+    q?: string;
+    tamanho?: string;
+    cor?: string;
+    precoMin?: string;
+    precoMax?: string;
+  }>;
 }
 
 export default async function ProductsPage({ searchParams }: Props) {
-  const { categoria, loja, ordenar, q } = await searchParams;
+  const { categoria, loja, ordenar, q, tamanho, cor, precoMin, precoMax } = await searchParams;
 
   const sortMap = { "menor-preco": "price-asc", "maior-preco": "price-desc" } as const;
+  const minPrice = precoMin ? Number(precoMin) : undefined;
+  const maxPrice = precoMax ? Number(precoMax) : undefined;
 
   const result = searchProducts({
     category: categoria || undefined,
     store: loja || undefined,
     query: q || undefined,
+    size: tamanho || undefined,
+    color: cor || undefined,
+    minPrice: Number.isFinite(minPrice) ? minPrice : undefined,
+    maxPrice: Number.isFinite(maxPrice) ? maxPrice : undefined,
     sort: ordenar ? sortMap[ordenar as keyof typeof sortMap] : undefined
   });
 
@@ -28,7 +43,16 @@ export default async function ProductsPage({ searchParams }: Props) {
       </h1>
 
       <div className="grid gap-8 lg:grid-cols-[260px_1fr]">
-        <ProductFilters categoria={categoria} loja={loja} ordenar={ordenar} q={q} />
+        <ProductFilters
+          categoria={categoria}
+          loja={loja}
+          ordenar={ordenar}
+          q={q}
+          tamanho={tamanho}
+          cor={cor}
+          precoMin={precoMin}
+          precoMax={precoMax}
+        />
 
         <div>
           <div className="mb-4 flex items-center justify-between text-sm text-slate-600">
@@ -37,6 +61,10 @@ export default async function ProductsPage({ searchParams }: Props) {
               {categoria && <input type="hidden" name="categoria" value={categoria} />}
               {loja && <input type="hidden" name="loja" value={loja} />}
               {q && <input type="hidden" name="q" value={q} />}
+              {tamanho && <input type="hidden" name="tamanho" value={tamanho} />}
+              {cor && <input type="hidden" name="cor" value={cor} />}
+              {precoMin && <input type="hidden" name="precoMin" value={precoMin} />}
+              {precoMax && <input type="hidden" name="precoMax" value={precoMax} />}
               <label htmlFor="ordenar" className="sr-only">
                 Ordenar
               </label>

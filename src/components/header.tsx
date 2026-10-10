@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Heart, Search, ShoppingCart, User } from "lucide-react";
 import { stores } from "@/lib/data";
 import { CartIndicator } from "@/components/cart-indicator";
+import { FavoritesIndicator } from "@/components/favorites-indicator";
 
 export function Header() {
   return (
@@ -42,8 +43,9 @@ export function Header() {
             <User className="h-5 w-5" />
             Minha conta
           </Link>
-          <Link href="/favoritos" aria-label="Lista de desejos" className="hover:text-brand-600">
+          <Link href="/favoritos" aria-label="Lista de desejos" className="relative hover:text-brand-600">
             <Heart className="h-5 w-5" />
+            <FavoritesIndicator />
           </Link>
           <Link href="/carrinho" aria-label="Carrinho" className="relative hover:text-brand-600">
             <ShoppingCart className="h-5 w-5" />

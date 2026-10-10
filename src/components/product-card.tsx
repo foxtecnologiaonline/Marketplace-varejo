@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { Product } from "@/lib/types";
 import { formatCurrency, formatInstallments } from "@/lib/format";
 import { getStoreBySlug } from "@/lib/data";
+import { FavoriteButton } from "@/components/favorite-button";
 
 export function ProductCard({ product }: { product: Product }) {
   const store = getStoreBySlug(product.storeSlug);
@@ -31,6 +32,7 @@ export function ProductCard({ product }: { product: Product }) {
             Frete grátis
           </span>
         )}
+        <FavoriteButton productId={product.id} className="absolute right-2 top-2" />
       </div>
 
       <div className="flex flex-1 flex-col gap-1 p-3">
