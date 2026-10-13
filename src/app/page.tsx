@@ -34,7 +34,7 @@ export default function HomePage() {
           </div>
           <div className="relative hidden aspect-[4/3] overflow-hidden rounded-xl sm:block">
             <Image
-              src="https://images.unsplash.com/photo-1600857062241-98e5dba7f214?q=80&w=900&auto=format&fit=crop"
+              src="https://images.unsplash.com/photo-1646794158082-581d46582c14?q=80&w=900&auto=format&fit=crop"
               alt="Alunos usando uniformes escolares"
               fill
               sizes="(min-width: 1280px) 600px, 50vw"

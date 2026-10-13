@@ -34,39 +34,46 @@ export const categories: Category[] = [
   {
     slug: "camisetas",
     name: "Camisetas",
-    image: "https://images.unsplash.com/photo-1503341504253-dff4815485f1?q=80&w=600&auto=format&fit=crop"
+    image: "https://images.unsplash.com/photo-1720514496333-2c552e9ee5f2?q=80&w=600&auto=format&fit=crop"
   },
   {
     slug: "calcas",
     name: "Calças",
-    image: "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?q=80&w=600&auto=format&fit=crop"
+    image: "https://images.unsplash.com/photo-1789110520164-2389992e5d0f?q=80&w=600&auto=format&fit=crop"
   },
   {
     slug: "bermudas",
     name: "Bermudas",
-    image: "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?q=80&w=600&auto=format&fit=crop"
+    image: "https://images.unsplash.com/photo-1789110520350-db58d2271c63?q=80&w=600&auto=format&fit=crop"
   },
   {
     slug: "agasalhos",
     name: "Agasalhos",
-    image: "https://images.unsplash.com/photo-1551028719-00167b16eac5?q=80&w=600&auto=format&fit=crop"
+    image: "https://images.unsplash.com/photo-1780396508935-94e234affc92?q=80&w=600&auto=format&fit=crop"
   },
   {
     slug: "kit-maternidade",
     name: "Kit Maternidade",
-    image: "https://images.unsplash.com/photo-1519689680058-324335c77eba?q=80&w=600&auto=format&fit=crop"
+    image: "https://images.unsplash.com/photo-1622290319146-7b63df48a635?q=80&w=600&auto=format&fit=crop"
   }
 ];
 
 const sizes = ["2", "4", "6", "8", "10", "12", "14", "P", "M", "G", "GG"];
 
-function makeProduct(partial: Omit<Product, "images" | "sizes" | "colors" | "highlights" | "tags" | "rating" | "reviewsCount">): Product {
+// Antes, todo produto usava as duas mesmas fotos genéricas (só um parâmetro
+// "sig" no fim da URL mudava, e o Unsplash ignora esse parâmetro — não é um
+// identificador de imagem real, então as 8 camisetas/calças/bermudas etc.
+// todas mostravam exatamente a mesma foto). Agora cada produto recebe duas
+// fotos de verdade, escolhidas para bater com o item (camiseta polo pra
+// camiseta, moletom pra calça de moletom, etc.) — ver "images" em cada
+// chamada de makeProduct abaixo.
+function makeProduct(
+  partial: Omit<Product, "sizes" | "colors" | "highlights" | "tags" | "rating" | "reviewsCount"> & {
+    images: [string, string];
+  }
+): Product {
   return {
     ...partial,
-    images: [
-      `https://images.unsplash.com/photo-1503341504253-dff4815485f1?q=80&w=800&auto=format&fit=crop&sig=${partial.id}a`,
-      `https://images.unsplash.com/photo-1562157873-818bc0726f68?q=80&w=800&auto=format&fit=crop&sig=${partial.id}b`
-    ],
     sizes: sizes.slice(0, 6),
     colors: [
       { name: "Azul Marinho", hex: "#1b3670" },
@@ -87,6 +94,10 @@ export const products: Product[] = [
     name: "Camiseta Manga Curta Marista",
     storeSlug: "colegio-marista",
     categorySlug: "camisetas",
+    images: [
+      "https://images.unsplash.com/photo-1720514496333-2c552e9ee5f2?q=80&w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1720514496505-d6756368b0b3?q=80&w=800&auto=format&fit=crop"
+    ],
     price: 69.9,
     compareAtPrice: 84.9,
     installments: { count: 3, value: 23.3, interestFree: true },
@@ -100,6 +111,10 @@ export const products: Product[] = [
     name: "Calça Moletom Positivo",
     storeSlug: "colegio-positivo",
     categorySlug: "calcas",
+    images: [
+      "https://images.unsplash.com/photo-1789110520164-2389992e5d0f?q=80&w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1789110853719-2920fe512117?q=80&w=800&auto=format&fit=crop"
+    ],
     price: 99.9,
     installments: { count: 4, value: 24.98, interestFree: true },
     description: "Calça de moletom flanelado com punho e cordão de ajuste na cintura.",
@@ -112,6 +127,10 @@ export const products: Product[] = [
     name: "Bermuda Esportiva Vila Olímpia",
     storeSlug: "vila-olimpia",
     categorySlug: "bermudas",
+    images: [
+      "https://images.unsplash.com/photo-1789110520350-db58d2271c63?q=80&w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1789110853613-4ace8d4041e3?q=80&w=800&auto=format&fit=crop"
+    ],
     price: 59.9,
     installments: { count: 2, value: 29.95, interestFree: true },
     description: "Bermuda em tactel com elástico e bolso lateral, ideal para educação física.",
@@ -124,6 +143,10 @@ export const products: Product[] = [
     name: "Conjunto Agasalho Marista",
     storeSlug: "colegio-marista",
     categorySlug: "agasalhos",
+    images: [
+      "https://images.unsplash.com/photo-1780396508935-94e234affc92?q=80&w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1592741159459-5f0549acad47?q=80&w=800&auto=format&fit=crop"
+    ],
     price: 148.9,
     compareAtPrice: 169.9,
     installments: { count: 6, value: 24.82, interestFree: true },
@@ -137,6 +160,10 @@ export const products: Product[] = [
     name: "Colete Personalizado para Time",
     storeSlug: "uniformes-personalizados",
     categorySlug: "camisetas",
+    images: [
+      "https://images.unsplash.com/photo-1693683224122-0a8e206f248d?q=80&w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1720514496194-6544164b4043?q=80&w=800&auto=format&fit=crop"
+    ],
     price: 45.9,
     installments: { count: 2, value: 22.95, interestFree: true },
     description: "Colete esportivo em dry-fit, personalização de número e nome sob consulta.",
@@ -149,6 +176,10 @@ export const products: Product[] = [
     name: "Kit Body Maternidade (3 peças)",
     storeSlug: "uniformes-personalizados",
     categorySlug: "kit-maternidade",
+    images: [
+      "https://images.unsplash.com/photo-1622290319146-7b63df48a635?q=80&w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1627859846191-39012f247980?q=80&w=800&auto=format&fit=crop"
+    ],
     price: 89.9,
     installments: { count: 3, value: 29.97, interestFree: true },
     description: "Kit com 3 bodies em algodão egípcio, gola de abertura total e etiqueta sem costura.",
@@ -161,6 +192,10 @@ export const products: Product[] = [
     name: "Camiseta Manga Longa Positivo",
     storeSlug: "colegio-positivo",
     categorySlug: "camisetas",
+    images: [
+      "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?q=80&w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1618354691551-44de113f0164?q=80&w=800&auto=format&fit=crop"
+    ],
     price: 74.9,
     installments: { count: 3, value: 24.97, interestFree: true },
     description: "Camiseta manga longa em malha peletizada, ideal para o inverno.",
@@ -173,6 +208,10 @@ export const products: Product[] = [
     name: "Calça Sarja Vila Olímpia",
     storeSlug: "vila-olimpia",
     categorySlug: "calcas",
+    images: [
+      "https://images.unsplash.com/photo-1626354796188-5e5e293fe168?q=80&w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1694447814836-c93ab70f7398?q=80&w=800&auto=format&fit=crop"
+    ],
     price: 109.9,
     installments: { count: 4, value: 27.48, interestFree: true },
     description: "Calça em sarja com elastano, cintura ajustável e bolsos reforçados.",
