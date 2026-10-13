@@ -6,7 +6,9 @@ export interface Color {
 export interface Store {
   slug: string;
   name: string;
-  logo: string;
+  // Sem logo de verdade cadastrado, a UI mostra um monograma (ver StoreLogo)
+  // em vez de uma foto aleatória fingindo ser logo.
+  logo?: string;
   description: string;
 }
 

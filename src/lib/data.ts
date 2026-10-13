@@ -3,29 +3,29 @@ import type { Category, Color, Product, Store } from "./types";
 // Camada de dados mock. Em produção, estas funções passam a consultar
 // o banco (Prisma/Supabase) mantendo a mesma assinatura, sem tocar nas páginas.
 
+// Nenhuma destas lojas tem logo real cadastrado ainda (upload próprio de
+// cada parceiro) — sem o campo "logo", a UI mostra um monograma com as
+// iniciais (ver src/components/store-logo.tsx) em vez de uma foto qualquer
+// do Unsplash fingindo ser o logo da loja.
 export const stores: Store[] = [
   {
     slug: "colegio-marista",
     name: "Colégio Marista",
-    logo: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=200&auto=format&fit=crop",
     description: "Uniformes oficiais do Infantil ao Médio"
   },
   {
     slug: "colegio-positivo",
     name: "Colégio Positivo",
-    logo: "https://images.unsplash.com/photo-1588072432836-e10032774350?q=80&w=200&auto=format&fit=crop",
     description: "Linha completa de uniforme e educação física"
   },
   {
     slug: "vila-olimpia",
     name: "Vila Olímpia",
-    logo: "https://images.unsplash.com/photo-1562157873-818bc0726f68?q=80&w=200&auto=format&fit=crop",
     description: "Uniformes esportivos e escolares"
   },
   {
     slug: "uniformes-personalizados",
     name: "Personalizados",
-    logo: "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?q=80&w=200&auto=format&fit=crop",
     description: "Coletes, bandeirões e kits sob encomenda"
   }
 ];

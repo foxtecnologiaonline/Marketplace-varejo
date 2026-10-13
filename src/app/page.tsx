@@ -3,6 +3,7 @@ import Link from "next/link";
 import { BenefitsBar } from "@/components/benefits-bar";
 import { NewsletterForm } from "@/components/newsletter-form";
 import { ProductCard } from "@/components/product-card";
+import { StoreLogo } from "@/components/store-logo";
 import { categories, getFeaturedProducts, stores } from "@/lib/data";
 
 export default function HomePage() {
@@ -61,9 +62,7 @@ export default function HomePage() {
               href={`/lojas/${store.slug}`}
               className="card flex flex-col items-center gap-3 p-5 text-center transition hover:shadow-lg"
             >
-              <div className="relative h-16 w-16 overflow-hidden rounded-full bg-slate-100">
-                <Image src={store.logo} alt={store.name} fill sizes="64px" className="object-cover" />
-              </div>
+              <StoreLogo store={store} className="h-16 w-16" />
               <div>
                 <p className="text-sm font-semibold text-slate-900">{store.name}</p>
                 <p className="text-xs text-slate-500">{store.description}</p>
